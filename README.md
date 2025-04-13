@@ -21,7 +21,7 @@ The FMOD Tone Generator provides a Xojo wrapper around the FMOD Core API for gen
 - Control volume
 - Manage audio resources properly
 
-This implementation is based on the FMOD example `generate_tone.cpp` and has been adapted for Xojo using declares to interface with the native FMOD library.
+This implementation is based on the FMOD example `generate_tone.cpp` and has been adapted for Xojo using declares to interface with the native FMOD library. The FMOD Core API library, part of the FMOD Engine, is available for download for registered users at [FMOD Website](https://www.fmod.com/). While the license is commercial, free indie license is granted to developers with registered projects with less than $200k revenue per year, on a small (under $600k) development budget (as in April 2025).
 
 ## Project Structure
 
