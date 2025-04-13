@@ -88,6 +88,7 @@ Begin DesktopWindow Window1
       Width           =   80
    End
    Begin Timer fmodTimer
+      Enabled         =   True
       Index           =   -2147483648
       LockedInPosition=   False
       Period          =   100
@@ -170,7 +171,7 @@ End
 		    Try
 		      toneGenerator.Update()
 		    Catch ex As RuntimeException
-		      ' Handle any errors
+		      // Handle any errors
 		    End Try
 		  End If
 		End Sub
@@ -418,14 +419,6 @@ End
 		Group="Deprecated"
 		InitialValue="False"
 		Type="Boolean"
-		EditorType=""
-	#tag EndViewProperty
-	#tag ViewProperty
-		Name="toneGenerator"
-		Visible=false
-		Group="Behavior"
-		InitialValue=""
-		Type="Integer"
 		EditorType=""
 	#tag EndViewProperty
 #tag EndViewBehavior

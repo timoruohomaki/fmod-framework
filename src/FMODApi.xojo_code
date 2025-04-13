@@ -137,7 +137,7 @@ Protected Module FMODApi
 		    Return FMOD_System_Init_Lib(systemPtr, maxChannels, flags, extraDriverData)
 		  Catch ex As RuntimeException
 		    System.DebugLog("FMOD_System_Init error: " + ex.Message)
-		    Return -1 ' Return an error code
+		    Return -1 // Return an error code
 		  End Try
 		End Function
 	#tag EndMethod
@@ -211,11 +211,166 @@ Protected Module FMODApi
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h21
+		Private Function InitializeFMODDeclares() As Boolean
+		  If mInitialized Then Return True
+		  
+		  // Determine the library name based on platform
+		  var libraryName As String
+		  
+		  #If TargetWindows Then
+		    libraryName = "fmod.dll"
+		  #ElseIf TargetMacOS Then
+		    libraryName = "libfmod.dylib"
+		  #ElseIf TargetLinux Then
+		    libraryName = "libfmod.so"
+		  #EndIf
+		  
+		  // Create System functions
+		  mFMOD_System_Create = New DeclareFunctionMBS(libraryName, "FMOD_System_Create")
+		  mFMOD_System_Create.Declare("FMOD_System_Create", "pi", "i")
+		  
+		  mFMOD_System_Init = New DeclareFunctionMBS(libraryName, "FMOD_System_Init")
+		  mFMOD_System_Init.Declare("FMOD_System_Init", "pipi", "i")
+		  
+		  mFMOD_System_Close = New DeclareFunctionMBS(libraryName, "FMOD_System_Close")
+		  mFMOD_System_Close.Declare("FMOD_System_Close", "p", "i")
+		  
+		  mFMOD_System_Release = New DeclareFunctionMBS(libraryName, "FMOD_System_Release")
+		  mFMOD_System_Release.Declare("FMOD_System_Release", "p", "i")
+		  
+		  mFMOD_System_Update = New DeclareFunctionMBS(libraryName, "FMOD_System_Update")
+		  mFMOD_System_Update.Declare("FMOD_System_Update", "p", "i")
+		  
+		  // DSP functions
+		  mFMOD_System_CreateDSPByType = New DeclareFunctionMBS(libraryName, "FMOD_System_CreateDSPByType")
+		  mFMOD_System_CreateDSPByType.Declare("FMOD_System_CreateDSPByType", "pip", "i")
+		  
+		  mFMOD_DSP_SetParameterFloat = New DeclareFunctionMBS(libraryName, "FMOD_DSP_SetParameterFloat")
+		  mFMOD_DSP_SetParameterFloat.Declare("FMOD_DSP_SetParameterFloat", "pif", "i")
+		  
+		  mFMOD_DSP_SetParameterInt = New DeclareFunctionMBS(libraryName, "FMOD_DSP_SetParameterInt")
+		  mFMOD_DSP_SetParameterInt.Declare("FMOD_DSP_SetParameterInt", "pii", "i")
+		  
+		  mFMOD_DSP_Release = New DeclareFunctionMBS(libraryName, "FMOD_DSP_Release")
+		  mFMOD_DSP_Release.Declare("FMOD_DSP_Release", "p", "i")
+		  
+		  // Channel functions
+		  mFMOD_System_PlayDSP = New DeclareFunctionMBS(libraryName, "FMOD_System_PlayDSP")
+		  mFMOD_System_PlayDSP.Declare("FMOD_System_PlayDSP", "pppbp", "i")
+		  
+		  mFMOD_Channel_SetVolume = New DeclareFunctionMBS(libraryName, "FMOD_Channel_SetVolume")
+		  mFMOD_Channel_SetVolume.Declare("FMOD_Channel_SetVolume", "pf", "i")
+		  
+		  mFMOD_Channel_SetFrequency = New DeclareFunctionMBS(libraryName, "FMOD_Channel_SetFrequency")
+		  mFMOD_Channel_SetFrequency.Declare("FMOD_Channel_SetFrequency", "pf", "i")
+		  
+		  mFMOD_Channel_GetVolume = New DeclareFunctionMBS(libraryName, "FMOD_Channel_GetVolume")
+		  mFMOD_Channel_GetVolume.Declare("FMOD_Channel_GetVolume", "pp", "i")
+		  
+		  mFMOD_Channel_GetFrequency = New DeclareFunctionMBS(libraryName, "FMOD_Channel_GetFrequency")
+		  mFMOD_Channel_GetFrequency.Declare("FMOD_Channel_GetFrequency", "pp", "i")
+		  
+		  mFMOD_Channel_SetPaused = New DeclareFunctionMBS(libraryName, "FMOD_Channel_SetPaused")
+		  mFMOD_Channel_SetPaused.Declare("FMOD_Channel_SetPaused", "pb", "i")
+		  
+		  mFMOD_Channel_Stop = New DeclareFunctionMBS(libraryName, "FMOD_Channel_Stop")
+		  mFMOD_Channel_Stop.Declare("FMOD_Channel_Stop", "p", "i")
+		  
+		  mFMOD_Channel_IsPlaying = New DeclareFunctionMBS(libraryName, "FMOD_Channel_IsPlaying")
+		  mFMOD_Channel_IsPlaying.Declare("FMOD_Channel_IsPlaying", "pp", "i")
+		  
+		  // Verify that all declares were created successfully
+		  If mFMOD_System_Create = Nil Or Not mFMOD_System_Create.Available Then
+		    System.DebugLog("FMOD_System_Create not available")
+		    Return False
+		  End If
+		  
+		  // Additional verification could be added for other functions
+		  
+		  mInitialized = True
+		  Return True
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Sub setLibraryPath()
 		  
 		End Sub
 	#tag EndMethod
+
+
+	#tag Property, Flags = &h21
+		Private mFMOD_Channel_GetFrequency As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_Channel_GetVolume As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_Channel_IsPlaying As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_Channel_SetFrequency As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_Channel_SetPaused As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_Channel_SetVolume As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_Channel_Stop As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_DSP_Release As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_DSP_SetParameterFloat As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_DSP_SetParameterInt As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_System_Close As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_System_Create As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_System_CreateDSPByType As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_System_Init As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_System_PlayDSP As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_System_Release As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_System_Update As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		mInitialized As Boolean = False
+	#tag EndProperty
 
 
 	#tag Constant, Name = FMOD_DSP_OSCILLATOR_RATE, Type = Double, Dynamic = False, Default = \"1", Scope = Public

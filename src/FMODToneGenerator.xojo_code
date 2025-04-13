@@ -5,21 +5,21 @@ Protected Class FMODToneGenerator
 		  If Not mInitialized Then Return
 		  
 		  Try
-		    ' Stop any existing channel
+		    // Stop any existing channel
 		    If mChannel.Ptr <> Nil Then
 		      Dim result As Integer = FMODApi.FMOD_Channel_Stop(mChannel.Ptr)
 		      FMODApi.ERRCHECK(result)
 		      mChannel.Ptr = Nil
 		    End If
 		    
-		    ' Release DSP
+		    // Release DSP
 		    If mDSP.Ptr <> Nil Then
 		      Dim result As Integer = FMODApi.FMOD_DSP_Release(mDSP.Ptr)
 		      FMODApi.ERRCHECK(result)
 		      mDSP.Ptr = Nil
 		    End If
 		    
-		    ' Close and release system
+		    // Close and release system
 		    If mSystem.Ptr <> Nil Then
 		      Dim result As Integer = FMODApi.FMOD_System_Close(mSystem.Ptr)
 		      FMODApi.ERRCHECK(result)
@@ -44,10 +44,14 @@ Protected Class FMODToneGenerator
 		  // Create FMOD System
 		  
 		  Try
+		    // Initialize the FMOD declares first
+		    If Not FMODApi.InitializeFMODDeclares() Then
+		      Raise New RuntimeException("Failed to initialize FMOD declares")
+		    End If
 		    
-		    var result as Integer
-		    
-		    result = fmodAPI.FMOD_System_Init(mSystem.Ptr, 32, fmodAPI.FMOD_INIT_NORMAL, Nil)
+		    Dim result As Integer
+		    result = FMODApi.FMOD_System_Create(mSystem, &h00010000) // FMOD version number
+		    FMODApi.ERRCHECK(result)
 		    
 		    // Initialize FMOD
 		    result = FMODApi.FMOD_System_Init(mSystem.Ptr, 32, FMODApi.FMOD_INIT_NORMAL, Nil)
@@ -62,9 +66,10 @@ Protected Class FMODToneGenerator
 		    FMODApi.ERRCHECK(result)
 		    
 		    mInitialized = True
-		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error initializing FMOD: " + ex.Message)
+		    Raise ex
 		  End Try
-		  
 		  
 		End Sub
 	#tag EndMethod
@@ -76,29 +81,29 @@ Protected Class FMODToneGenerator
 		  Try
 		    Dim result As Integer
 		    
-		    ' Stop any existing channel
+		    // Stop any existing channel
 		    If mChannel.Ptr <> Nil Then
 		      result = FMODApi.FMOD_Channel_Stop(mChannel.Ptr)
 		      FMODApi.ERRCHECK(result)
 		    End If
 		    
-		    ' Play the DSP
+		    // Play the DSP
 		    result = FMODApi.FMOD_System_PlayDSP(mSystem.Ptr, mDSP.Ptr, Nil, True, mChannel)
 		    FMODApi.ERRCHECK(result)
 		    
-		    ' Set the volume
+		    // Set the volume
 		    result = FMODApi.FMOD_Channel_SetVolume(mChannel.Ptr, volume)
 		    FMODApi.ERRCHECK(result)
 		    
-		    ' Set the oscillator type
+		    // Set the oscillator type
 		    result = FMODApi.FMOD_DSP_SetParameterInt(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_TYPE, oscillatorType)
 		    FMODApi.ERRCHECK(result)
 		    
-		    ' Start playing
+		    // Start playing
 		    result = FMODApi.FMOD_Channel_SetPaused(mChannel.Ptr, False)
 		    FMODApi.ERRCHECK(result)
 		    
-		    ' Update the system
+		    // Update the system
 		    result = FMODApi.FMOD_System_Update(mSystem.Ptr)
 		    FMODApi.ERRCHECK(result)
 		  Catch ex As RuntimeException
@@ -116,7 +121,7 @@ Protected Class FMODToneGenerator
 		    Dim result As Integer = FMODApi.FMOD_Channel_SetFrequency(mChannel.Ptr, frequency)
 		    FMODApi.ERRCHECK(result)
 		    
-		    ' Update the system
+		    // Update the system
 		    result = FMODApi.FMOD_System_Update(mSystem.Ptr)
 		    FMODApi.ERRCHECK(result)
 		  Catch ex As RuntimeException
@@ -136,7 +141,7 @@ Protected Class FMODToneGenerator
 		    FMODApi.ERRCHECK(result)
 		    mChannel.Ptr = Nil
 		    
-		    ' Update the system
+		    // Update the system
 		    result = FMODApi.FMOD_System_Update(mSystem.Ptr)
 		    FMODApi.ERRCHECK(result)
 		  Catch ex As RuntimeException
@@ -220,11 +225,11 @@ Protected Class FMODToneGenerator
 			EditorType=""
 		#tag EndViewProperty
 		#tag ViewProperty
-			Name="mSystem"
+			Name="mInitialized"
 			Visible=false
 			Group="Behavior"
-			InitialValue=""
-			Type="Integer"
+			InitialValue="False"
+			Type="Boolean"
 			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior

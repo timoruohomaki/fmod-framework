@@ -10,6 +10,7 @@ Interface=IAudioProfiler;IAudioProfiler.xojo_code;&h00000000027CF7FF;&h000000000
 Class=FMODAudioProfiler;FMODAudioProfiler.xojo_code;&h0000000058FD4FFF;&h0000000000000000;false
 Module=FMODApi;FMODApi.xojo_code;&h000000003F4B9FFF;&h0000000000000000;false
 Class=FMODToneGenerator;FMODToneGenerator.xojo_code;&h00000000615127FF;&h0000000000000000;false
+Module=ExtKeyStore;../../ExtKeyStore.xojo_binary_code;&h000000004B4A87FF;&h0000000000000000;false
 DefaultWindow=Window1
 AppMenuBar=MainMenuBar
 MajorVersion=1

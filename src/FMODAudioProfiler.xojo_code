@@ -23,7 +23,7 @@ Implements IAudioProfiler
 		    
 		    var key As String = "timing_" + operationName
 		    
-		    ' Store running average for timing operations
+		    // Store running average for timing operations
 		    If mTimingData.HasKey(key) Then
 		      var dataDict As Dictionary = mTimingData.Value(key)
 		      var count As Integer = dataDict.Value("count")
@@ -47,7 +47,7 @@ Implements IAudioProfiler
 		      mTimingData.Value(key) = dataDict
 		    End If
 		    
-		    ' Remove the start time
+		    // Remove the start time
 		    mStartTimes.Remove(operationName)
 		  End If
 		  
@@ -71,7 +71,7 @@ Implements IAudioProfiler
 		Function GetPeakMemoryUsage() As UInt64
 		  // Part of the IAudioProfiler interface.
 		  
-		      Return mPeakMemoryUsage
+		  Return mPeakMemoryUsage
 		End Function
 	#tag EndMethod
 
@@ -81,15 +81,15 @@ Implements IAudioProfiler
 		  
 		  var result As New Dictionary
 		  
-		  ' Copy all metrics data
+		  // Copy all metrics data
 		  For Each key As Variant In mMetricsData.Keys
 		    result.Value(key) = mMetricsData.Value(key)
 		  Next
 		  
-		  ' Add timing data
+		  // Add timing data
 		  result.Value("timing_data") = mTimingData.Clone
 		  
-		  ' Add summary metrics
+		  // Add summary metrics
 		  result.Value("avg_cpu_usage") = GetAverageCPUUsage()
 		  result.Value("peak_memory") = mPeakMemoryUsage
 		  

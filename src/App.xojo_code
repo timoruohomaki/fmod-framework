@@ -3,14 +3,17 @@ Protected Class App
 Inherits DesktopApplication
 	#tag Event
 		Sub Opening()
-		  #If TargetWindows Then
-		    Declare Sub LoadLibrary Lib "kernel32" Alias "LoadLibraryA" (lpLibFileName As CString)
-		    LoadLibrary("C:\lib\fmod.dll")
-		  #ElseIf TargetMacOS Then
-		    Declare Function dlopen Lib "System" (path As CString, mode As Integer) As Ptr
-		    Const RTLD_LAZY = 1
-		    Dim result As Ptr = dlopen("libfmod.dylib", RTLD_LAZY)
-		  #EndIf
+		  do
+		  loop until RegisterPlugins
+		  
+		  if Not FMODApi.InitializeFMODDeclares() Then
+		    
+		    MessageBox("Failed to initialize FMOD. The application will close.")
+		    
+		    Quit
+		    
+		    Return
+		  End If
 		End Sub
 	#tag EndEvent
 
