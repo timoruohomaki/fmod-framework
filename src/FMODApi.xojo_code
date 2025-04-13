@@ -141,6 +141,39 @@ Protected Module FMODApi
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function FMOD_System_CreateSound(systemPtr As Ptr, filename As String, flags As UInt32, info As Ptr, ByRef sound As FMODSound) As Integer
+		  If Not mInitialized Then
+		    If Not InitializeFMODDeclares() Then
+		      System.Log(System.LogLevelError, "FMOD declares not initialized")
+		      Return -1
+		    End If
+		  End If
+		  
+		  Try
+		    Dim soundMB As New MemoryBlock(4)
+		    
+		    Dim params() As Variant
+		    params.Append(systemPtr)
+		    params.Append(filename)
+		    params.Append(flags)
+		    params.Append(info)
+		    params.Append(soundMB)
+		    
+		    Dim result As Integer = mFMOD_System_CreateSound.Invoke(params)
+		    
+		    If result = 0 Then
+		      sound.Ptr = soundMB.Ptr(0)
+		    End If
+		    
+		    Return result
+		  Catch ex As RuntimeException
+		    System.Log(System.LogLevelError, "FMOD_System_CreateSound error: " + ex.Message)
+		    Return -1
+		  End Try
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Function FMOD_System_CreateStream(systemPtr As Ptr, filename As String, flags As UInt32, info As Ptr, ByRef sound As FMODSound) As Integer
 		  If Not mInitialized Then
 		    If Not InitializeFMODDeclares() Then

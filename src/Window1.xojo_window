@@ -88,6 +88,7 @@ Begin DesktopWindow Window1
       Width           =   80
    End
    Begin Timer fmodTimer
+      Enabled         =   True
       Index           =   -2147483648
       LockedInPosition=   False
       Period          =   100
@@ -116,7 +117,7 @@ End
 
 	#tag Event
 		Sub Opening()
-		  toneGenerator = New FMODToneGenerator
+		  toneGenerator = New FMODToneGeneratorDSP
 		  
 		  Try
 		    
@@ -137,7 +138,7 @@ End
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
-		toneGenerator As FMODToneGenerator
+		toneGenerator As FMODToneGeneratorDSP
 	#tag EndProperty
 
 

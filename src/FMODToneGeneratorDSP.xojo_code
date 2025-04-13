@@ -1,5 +1,5 @@
 #tag Class
-Protected Class FMODToneGenerator
+Protected Class FMODToneGeneratorDSP
 	#tag Method, Flags = &h0
 		Sub Cleanup()
 		  If Not mInitialized Then Return
@@ -162,9 +162,17 @@ Protected Class FMODToneGenerator
 		      Raise New RuntimeException(errorMsg)
 		    End If
 		    
-		    // Create sound for each waveform type
-		    // We'll use pregenerated waveform sounds instead of oscillator DSP
-		    CreateWaveforms()
+		    // Just create one DSP for now - we'll set its parameters during PlayTone
+		    System.Log(System.LogLevelDebug, "Creating oscillator DSP")
+		    result = FMODApi.FMOD_System_CreateDSPByType(mSystem.Ptr, FMODApi.FMOD_DSP_TYPE_OSCILLATOR, mDSP)
+		    If result <> 0 Then
+		      Dim errorMsg As String = "Error creating DSP: " + FMODApi.GetErrorString(result)
+		      System.Log(System.LogLevelError, errorMsg)
+		      Raise New RuntimeException(errorMsg)
+		    End If
+		    
+		    // Don't try to set any DSP parameters yet
+		    // We'll set them after we've added the DSP to a channel
 		    
 		    mInitialized = True
 		    
@@ -191,62 +199,205 @@ Protected Class FMODToneGenerator
 		  Try
 		    Dim result As Integer
 		    
-		    // Stop any existing channel
-		    If mChannel.Ptr <> Nil Then
-		      System.Log(System.LogLevelDebug, "Stopping existing channel")
+		    Select Case DSPParamSettingOrder
+		    Case 0:
+		      // Standard approach - Reset, set params, then play
+		      
+		      // Stop any existing channel
+		      If mChannel.Ptr <> Nil Then
+		        System.Log(System.LogLevelDebug, "Stopping existing channel")
+		        result = FMODApi.FMOD_Channel_Stop(mChannel.Ptr)
+		        If result <> 0 Then
+		          System.Log(System.LogLevelWarning, "Warning: Could not stop channel: " + FMODApi.GetErrorString(result))
+		        End If
+		        
+		        mChannel.Ptr = Nil
+		        result = FMODApi.FMOD_System_Update(mSystem.Ptr)
+		        SleepMBS(0.05)
+		      End If
+		      
+		      // Release and recreate DSP each time
+		      If mDSP.Ptr <> Nil Then
+		        System.Log(System.LogLevelDebug, "Releasing existing DSP")
+		        result = FMODApi.FMOD_DSP_Release(mDSP.Ptr)
+		        mDSP.Ptr = Nil
+		        result = FMODApi.FMOD_System_Update(mSystem.Ptr)
+		        SleepMBS(0.05)
+		      End If
+		      
+		      // Create a new oscillator DSP
+		      System.Log(System.LogLevelDebug, "Creating new DSP")
+		      result = FMODApi.FMOD_System_CreateDSPByType(mSystem.Ptr, FMODApi.FMOD_DSP_TYPE_OSCILLATOR, mDSP)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error creating DSP: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      // Set the oscillator type BEFORE adding to the DSP network
+		      System.Log(System.LogLevelDebug, "Setting oscillator type to " + Str(oscillatorType))
+		      result = FMODApi.FMOD_DSP_SetParameterInt(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_TYPE, oscillatorType)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error setting oscillator type: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      // Set oscillator frequency
+		      System.Log(System.LogLevelDebug, "Setting oscillator rate to 440.0")
+		      result = FMODApi.FMOD_DSP_SetParameterFloat(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_RATE, 440.0)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error setting oscillator rate: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      // Create a channel for output
+		      System.Log(System.LogLevelDebug, "Creating a channel")
+		      result = FMODApi.FMOD_System_PlayDSP(mSystem.Ptr, mDSP.Ptr, Nil, True, mChannel)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error playing DSP: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		    Case 1:
+		      // Alternative approach - Play DSP first, then set params
+		      
+		      // Stop any existing channel
+		      If mChannel.Ptr <> Nil Then
+		        System.Log(System.LogLevelDebug, "Stopping existing channel")
+		        result = FMODApi.FMOD_Channel_Stop(mChannel.Ptr)
+		        If result <> 0 Then
+		          System.Log(System.LogLevelWarning, "Warning: Could not stop channel: " + FMODApi.GetErrorString(result))
+		        End If
+		        
+		        mChannel.Ptr = Nil
+		        result = FMODApi.FMOD_System_Update(mSystem.Ptr)
+		        SleepMBS(0.05)
+		      End If
+		      
+		      // Play the DSP - paused initially
+		      System.Log(System.LogLevelDebug, "About to play DSP")
+		      result = FMODApi.FMOD_System_PlayDSP(mSystem.Ptr, mDSP.Ptr, Nil, True, mChannel)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error playing DSP: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      // Update the system to make sure the DSP is attached to the channel
+		      result = FMODApi.FMOD_System_Update(mSystem.Ptr)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error updating system: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      // Now set the oscillator parameters
+		      // Set frequency first
+		      System.Log(System.LogLevelDebug, "Setting oscillator rate to 440.0")
+		      result = FMODApi.FMOD_DSP_SetParameterFloat(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_RATE, 440.0)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error setting oscillator rate: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      // Set oscillator type
+		      System.Log(System.LogLevelDebug, "Setting oscillator type to " + Str(oscillatorType))
+		      result = FMODApi.FMOD_DSP_SetParameterInt(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_TYPE, oscillatorType)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error setting oscillator type: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		    Case 2:
+		      // Alternative approach 2 - Use direct DSP connection methods
+		      
+		      // Stop any existing channel
+		      If mChannel.Ptr <> Nil Then
+		        System.Log(System.LogLevelDebug, "Stopping existing channel")
+		        result = FMODApi.FMOD_Channel_Stop(mChannel.Ptr)
+		        If result <> 0 Then
+		          System.Log(System.LogLevelWarning, "Warning: Could not stop channel: " + FMODApi.GetErrorString(result))
+		        End If
+		        
+		        mChannel.Ptr = Nil
+		        result = FMODApi.FMOD_System_Update(mSystem.Ptr)
+		        SleepMBS(0.05)
+		      End If
+		      
+		      // Release and recreate DSP each time
+		      If mDSP.Ptr <> Nil Then
+		        System.Log(System.LogLevelDebug, "Releasing existing DSP")
+		        result = FMODApi.FMOD_DSP_Release(mDSP.Ptr)
+		        mDSP.Ptr = Nil
+		        result = FMODApi.FMOD_System_Update(mSystem.Ptr)
+		        SleepMBS(0.05)
+		      End If
+		      
+		      // Create a new oscillator DSP
+		      System.Log(System.LogLevelDebug, "Creating new DSP")
+		      result = FMODApi.FMOD_System_CreateDSPByType(mSystem.Ptr, FMODApi.FMOD_DSP_TYPE_OSCILLATOR, mDSP)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error creating DSP: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      // First play a dummy tone to get a channel
+		      result = FMODApi.FMOD_System_PlayDSP(mSystem.Ptr, mDSP.Ptr, Nil, True, mChannel)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error playing DSP: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      // Stop it immediately
 		      result = FMODApi.FMOD_Channel_Stop(mChannel.Ptr)
 		      If result <> 0 Then
 		        System.Log(System.LogLevelWarning, "Warning: Could not stop channel: " + FMODApi.GetErrorString(result))
 		      End If
 		      
-		      mChannel.Ptr = Nil
+		      // Update
 		      result = FMODApi.FMOD_System_Update(mSystem.Ptr)
-		      SleepMBS(0.05)
-		    End If
-		    
-		    // Select the appropriate waveform sound
-		    Dim soundToPlay As FMODApi.FMODSound
-		    Select Case oscillatorType
-		    Case FMODApi.OSCILLATOR_SINE
-		      soundToPlay = mSineWaveSound
-		      System.Log(System.LogLevelDebug, "Using sine wave")
-		    Case FMODApi.OSCILLATOR_SQUARE
-		      soundToPlay = mSquareWaveSound
-		      System.Log(System.LogLevelDebug, "Using square wave")
-		    Case FMODApi.OSCILLATOR_SAWUP
-		      soundToPlay = mSawWaveSound
-		      System.Log(System.LogLevelDebug, "Using saw wave")
-		    Case FMODApi.OSCILLATOR_TRIANGLE
-		      soundToPlay = mTriangleWaveSound
-		      System.Log(System.LogLevelDebug, "Using triangle wave")
-		    Else
-		      soundToPlay = mSineWaveSound
-		      System.Log(System.LogLevelDebug, "Using default sine wave")
+		      SleepMBS(0.1)
+		      
+		      // Now set parameters
+		      System.Log(System.LogLevelDebug, "Setting oscillator type to " + Str(oscillatorType))
+		      result = FMODApi.FMOD_DSP_SetParameterInt(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_TYPE, oscillatorType)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error setting oscillator type: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      System.Log(System.LogLevelDebug, "Setting oscillator rate to 440.0")
+		      result = FMODApi.FMOD_DSP_SetParameterFloat(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_RATE, 440.0)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error setting oscillator rate: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
+		      
+		      // Play again
+		      result = FMODApi.FMOD_System_PlayDSP(mSystem.Ptr, mDSP.Ptr, Nil, True, mChannel)
+		      If result <> 0 Then
+		        Dim errorMsg As String = "Error playing DSP: " + FMODApi.GetErrorString(result)
+		        System.Log(System.LogLevelError, errorMsg)
+		        Raise New RuntimeException(errorMsg)
+		      End If
 		    End Select
 		    
-		    // Play the sound
-		    System.Log(System.LogLevelDebug, "About to play sound")
-		    result = FMODApi.FMOD_System_PlaySound(mSystem.Ptr, soundToPlay.Ptr, Nil, True, mChannel)
-		    If result <> 0 Then
-		      Dim errorMsg As String = "Error playing sound: " + FMODApi.GetErrorString(result)
-		      System.Log(System.LogLevelError, errorMsg)
-		      Raise New RuntimeException(errorMsg)
-		    End If
+		    // Common code for all approaches
 		    
 		    // Set the volume
 		    System.Log(System.LogLevelDebug, "Setting channel volume to " + Str(volume))
 		    result = FMODApi.FMOD_Channel_SetVolume(mChannel.Ptr, volume)
 		    If result <> 0 Then
 		      Dim errorMsg As String = "Error setting volume: " + FMODApi.GetErrorString(result)
-		      System.Log(System.LogLevelError, errorMsg)
-		      Raise New RuntimeException(errorMsg)
-		    End If
-		    
-		    // Set frequency to 440Hz
-		    System.Log(System.LogLevelDebug, "Setting channel frequency")
-		    result = FMODApi.FMOD_Channel_SetFrequency(mChannel.Ptr, 440.0)
-		    If result <> 0 Then
-		      Dim errorMsg As String = "Error setting frequency: " + FMODApi.GetErrorString(result)
 		      System.Log(System.LogLevelError, errorMsg)
 		      Raise New RuntimeException(errorMsg)
 		    End If

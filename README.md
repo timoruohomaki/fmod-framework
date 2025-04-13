@@ -2,10 +2,10 @@
 
 # FMOD Tone Generator for Xojo
 
-This project implements a tone generator in Xojo using the FMOD Core API. It allows you to generate and play different waveforms (sine, square, saw, triangle) at various frequencies and volumes.
-
 > [!NOTE]
 > This project is still work in progress, this comment will be removed when it works.
+
+This project implements a tone generator in Xojo using the FMOD Core API. It allows you to generate and play different waveforms (sine, square, saw, triangle) at various frequencies and volumes.
 
 ## Table of Contents
 
@@ -14,168 +14,104 @@ This project implements a tone generator in Xojo using the FMOD Core API. It all
 - [Implementation Details](#implementation-details)
 - [API Reference](#api-reference)
 - [Usage Examples](#usage-examples)
+- [Installation](#installation)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
 ## Overview
 
-The FMOD Tone Generator provides a Xojo wrapper around the FMOD Core API for generating audio tones. It allows you to:
+The FMOD Tone Generator provides a Xojo wrapper around the FMOD Core API for generating audio tones. It includes two distinct implementations:
 
+1. **DSP-based approach**: Uses FMOD's DSP oscillator to generate tones in real-time.
+2. **Sound-based approach**: Uses pre-generated waveform sound files.
+
+Both implementations allow you to:
 - Play sine, square, saw, and triangle waveforms
 - Adjust frequency in real-time
 - Control volume
 - Manage audio resources properly
 
-This implementation is based on the FMOD example `generate_tone.cpp` and has been adapted for Xojo using declares to interface with the native FMOD library. The FMOD Core API library, part of the FMOD Engine, is available for download for registered users at [FMOD Website](https://www.fmod.com/). While the license is commercial, free indie license is granted to developers with registered projects with less than $200k revenue per year, on a small (under $600k) development budget (as in April 2025).
-
 ## Project Structure
 
 The project consists of the following main components:
 
-1. **FMODApi Module** - Contains all declares, constants, and helper functions for interfacing with the FMOD library
-2. **FMODToneGenerator Class** - Provides a high-level interface for generating tones
-3. **Window UI** - A simple user interface for controlling the tone generator
-
-### File Structure
-
 ```
 FMODToneGenerator/
-├── FMODApi.xojo_module
-├── FMODToneGenerator.xojo_class
-├── Window1.xojo_window
-└── App.xojo_code
+├── FMODApi.xojo_module                  // Shared FMOD API declarations
+├── FMODToneGeneratorDSP.xojo_class      // DSP-based implementation
+├── FMODToneGeneratorSound.xojo_class    // Sound file-based implementation 
+├── Window1.xojo_window                  // UI with options to switch between implementations
+└── App.xojo_code                        // Application entry point
 ```
+
+### Components
+
+1. **FMODApi Module**: Contains all declares, constants, and utility functions for interacting with the FMOD library.
+2. **FMODToneGeneratorDSP Class**: Wraps the FMOD DSP oscillator functionality.
+3. **FMODToneGeneratorSound Class**: Implements tone generation using pre-generated waveform files.
+4. **Window1**: Provides a user interface for controlling the tone generator.
 
 ## Implementation Details
 
-### Library Loading
+### FMODApi Module
 
-The project uses `DeclareLibraryMBS` and `DeclareFunctionMBS` from the MBS Xojo Plugins to dynamically load the FMOD library at runtime:
+The FMODApi module uses the MBS Xojo Plugins' `DeclareLibraryMBS` and `DeclareFunctionMBS` classes to dynamically load the FMOD library functions. This approach provides better error handling and cross-platform compatibility compared to traditional Xojo declares.
 
 ```xojo
-// In FMODApi module
-Private mFMODLibrary As DeclareLibraryMBS
-Private mFMOD_System_Create As DeclareFunctionMBS
-// ...other function declares
-
-Public Function InitializeFMODDeclares() As Boolean
-  If mInitialized Then Return True
-  
-  // Determine the library name based on platform
-  Dim libraryName As String
-  #If TargetWindows Then
-    libraryName = "fmod.dll"
-  #ElseIf TargetMacOS Then
-    libraryName = "libfmod.dylib"
-  #ElseIf TargetLinux Then
-    libraryName = "libfmod.so"
-  #EndIf
-  
-  // Load the library
-  mFMODLibrary = New DeclareLibraryMBS(libraryName)
-  If mFMODLibrary = Nil Or Not mFMODLibrary.Available Then
-    System.DebugLog("Failed to load FMOD library: " + libraryName)
-    Return False
+// Example of function declaration using MBS
+Public Function FMOD_System_Init(systemPtr As Ptr, maxChannels As Integer, flags As UInt32, extraDriverData As Ptr) As Integer
+  If Not mInitialized Then
+    If Not InitializeFMODDeclares() Then
+      System.Log(System.LogLevelError, "FMOD declares not initialized")
+      Return -1
+    End If
   End If
   
-  // Get function symbols and create function declares
-  Dim p As Ptr = mFMODLibrary.Symbol("FMOD_System_Create")
-  If p = Nil Then
-    System.DebugLog("Failed to find FMOD_System_Create symbol")
-    Return False
-  End If
-  mFMOD_System_Create = New DeclareFunctionMBS("(pi)i", p)
-  
-  // ...load other functions similarly
-  
-  mInitialized = True
-  Return True
+  Try
+    Dim params() As Variant
+    params.Append(systemPtr)
+    params.Append(maxChannels)
+    params.Append(flags)
+    params.Append(extraDriverData)
+    
+    Return mFMOD_System_Init.Invoke(params)
+  Catch ex As RuntimeException
+    System.Log(System.LogLevelError, "FMOD_System_Init error: " + ex.Message)
+    Return -1
+  End Try
 End Function
 ```
 
-### Tone Generation
+### DSP-Based Implementation
 
-The tone generation happens through the FMOD DSP system. The `FMODToneGenerator` class creates an oscillator DSP unit and connects it to a channel:
+The DSP-based implementation uses FMOD's built-in oscillator DSP effect to generate tones in real-time. It provides three different approaches for setting DSP parameters to work around potential issues with specific FMOD versions:
+
+1. **Standard approach**: Creates a new DSP, sets parameters, then plays it.
+2. **Alternative approach 1**: Plays the DSP paused, sets parameters, then unpauses it.
+3. **Alternative approach 2**: Uses a more complex sequence involving playing and stopping before setting parameters.
 
 ```xojo
-// In FMODToneGenerator.PlayTone
-Public Sub PlayTone(oscillatorType As Integer, volume As Single)
-  If Not mInitialized Then Initialize()
-  
-  Try
-    Dim result As Integer
-    
-    // Stop any existing channel
-    If mChannel.Ptr <> Nil Then
-      result = FMODApi.FMOD_Channel_Stop(mChannel.Ptr)
-      FMODApi.ERRCHECK(result)
-    End If
-    
-    // Play the DSP
-    result = FMODApi.FMOD_System_PlayDSP(mSystem.Ptr, mDSP.Ptr, Nil, True, mChannel)
-    FMODApi.ERRCHECK(result)
-    
-    // Set the volume
-    result = FMODApi.FMOD_Channel_SetVolume(mChannel.Ptr, volume)
-    FMODApi.ERRCHECK(result)
-    
-    // Set the oscillator type
-    result = FMODApi.FMOD_DSP_SetParameterInt(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_TYPE, oscillatorType)
-    FMODApi.ERRCHECK(result)
-    
-    // Start playing
-    result = FMODApi.FMOD_Channel_SetPaused(mChannel.Ptr, False)
-    FMODApi.ERRCHECK(result)
-    
-    // Update the system
-    result = FMODApi.FMOD_System_Update(mSystem.Ptr)
-    FMODApi.ERRCHECK(result)
-  Catch ex As RuntimeException
-    System.DebugLog("Error playing tone: " + ex.Message)
-    Raise ex
-  End Try
-End Sub
+// Example of setting DSP parameters
+result = FMODApi.FMOD_DSP_SetParameterInt(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_TYPE, oscillatorType)
+result = FMODApi.FMOD_DSP_SetParameterFloat(mDSP.Ptr, FMODApi.FMOD_DSP_OSCILLATOR_RATE, 440.0)
 ```
 
-### Resource Management
+### Sound-Based Implementation
 
-The `FMODToneGenerator` class handles resource cleanup in its `Cleanup` method:
+The sound-based implementation uses pre-generated waveform files (sine.wav, square.wav, etc.) and plays them with frequency adjustment. This approach avoids issues with DSP parameter setting.
 
 ```xojo
-Public Sub Cleanup()
-  If Not mInitialized Then Return
-  
-  Try
-    // Stop any existing channel
-    If mChannel.Ptr <> Nil Then
-      Dim result As Integer = FMODApi.FMOD_Channel_Stop(mChannel.Ptr)
-      FMODApi.ERRCHECK(result)
-      mChannel.Ptr = Nil
-    End If
-    
-    // Release DSP
-    If mDSP.Ptr <> Nil Then
-      Dim result As Integer = FMODApi.FMOD_DSP_Release(mDSP.Ptr)
-      FMODApi.ERRCHECK(result)
-      mDSP.Ptr = Nil
-    End If
-    
-    // Close and release system
-    If mSystem.Ptr <> Nil Then
-      Dim result As Integer = FMODApi.FMOD_System_Close(mSystem.Ptr)
-      FMODApi.ERRCHECK(result)
-      
-      result = FMODApi.FMOD_System_Release(mSystem.Ptr)
-      FMODApi.ERRCHECK(result)
-      mSystem.Ptr = Nil
-    End If
-    
-    mInitialized = False
-  Catch ex As RuntimeException
-    System.DebugLog("Error cleaning up FMOD: " + ex.Message)
-    Raise ex
-  End Try
-End Sub
+// Example of selecting and playing a waveform sound
+Dim soundToPlay As FMODApi.FMODSound
+Select Case oscillatorType
+Case FMODApi.OSCILLATOR_SINE
+  soundToPlay = mSineWaveSound
+Case FMODApi.OSCILLATOR_SQUARE
+  soundToPlay = mSquareWaveSound
+// ...other cases
+End Select
+
+result = FMODApi.FMOD_System_PlaySound(mSystem.Ptr, soundToPlay.Ptr, Nil, True, mChannel)
 ```
 
 ## API Reference
@@ -195,6 +131,7 @@ End Sub
 | `OSCILLATOR_SQUARE` | 1 | Square wave |
 | `OSCILLATOR_SAWUP` | 2 | Saw wave |
 | `OSCILLATOR_TRIANGLE` | 4 | Triangle wave |
+| `FMOD_LOOP_NORMAL` | &h00000001 | Normal loop mode for sounds |
 
 #### Methods
 
@@ -210,6 +147,8 @@ End Sub
 | `FMOD_DSP_SetParameterFloat(dspPtr As Ptr, index As Integer, value As Single) As Integer` | Sets a float parameter on a DSP |
 | `FMOD_DSP_SetParameterInt(dspPtr As Ptr, index As Integer, value As Integer) As Integer` | Sets an integer parameter on a DSP |
 | `FMOD_DSP_Release(dspPtr As Ptr) As Integer` | Releases a DSP unit |
+| `FMOD_System_CreateSound(systemPtr As Ptr, filename As String, flags As UInt32, info As Ptr, ByRef sound As FMODSound) As Integer` | Creates a sound from a file |
+| `FMOD_System_PlaySound(systemPtr As Ptr, sound As Ptr, channelGroup As Ptr, paused As Boolean, ByRef channel As FMODChannel) As Integer` | Plays a sound |
 | `FMOD_System_PlayDSP(systemPtr As Ptr, dsp As Ptr, channelGroup As Ptr, paused As Boolean, ByRef channel As FMODChannel) As Integer` | Plays a DSP on a channel |
 | `FMOD_Channel_SetVolume(channel As Ptr, volume As Single) As Integer` | Sets channel volume |
 | `FMOD_Channel_SetFrequency(channel As Ptr, frequency As Single) As Integer` | Sets channel frequency |
@@ -221,13 +160,27 @@ End Sub
 | `ERRCHECK(result As Integer)` | Checks for FMOD errors |
 | `GetErrorString(result As Integer) As String` | Converts error codes to strings |
 
-### FMODToneGenerator Class
-
-#### Methods
+### FMODToneGeneratorDSP Class
 
 | Method | Description |
 |--------|-------------|
 | `Initialize()` | Initializes the FMOD system and DSP |
+| `PlayTone(oscillatorType As Integer, volume As Single)` | Plays a tone with the specified waveform and volume |
+| `StopTone()` | Stops the currently playing tone |
+| `SetFrequency(frequency As Single)` | Sets the frequency of the current tone |
+| `SetVolume(volume As Single)` | Sets the volume of the current tone |
+| `GetVolume() As Single` | Gets the current volume |
+| `GetFrequency() As Single` | Gets the current frequency |
+| `IsPlaying() As Boolean` | Checks if a tone is currently playing |
+| `Update()` | Updates the FMOD system (call periodically) |
+| `Cleanup()` | Cleans up all FMOD resources |
+| Property `DSPParamSettingOrder As Integer` | Controls which parameter setting approach to use |
+
+### FMODToneGeneratorSound Class
+
+| Method | Description |
+|--------|-------------|
+| `Initialize()` | Initializes the FMOD system and loads sound files |
 | `PlayTone(oscillatorType As Integer, volume As Single)` | Plays a tone with the specified waveform and volume |
 | `StopTone()` | Stops the currently playing tone |
 | `SetFrequency(frequency As Single)` | Sets the frequency of the current tone |
@@ -243,13 +196,12 @@ End Sub
 ### Basic Usage
 
 ```xojo
-// Create and initialize the tone generator
-Dim toneGenerator As New FMODToneGenerator
+// Using the DSP-based tone generator
+Dim toneGenerator As New FMODToneGeneratorDSP
 toneGenerator.Initialize()
 
 // Play a sine wave at 440Hz with 50% volume
 toneGenerator.PlayTone(FMODApi.OSCILLATOR_SINE, 0.5)
-toneGenerator.SetFrequency(440.0)
 
 // Later, stop the tone
 toneGenerator.StopTone()
@@ -258,16 +210,16 @@ toneGenerator.StopTone()
 toneGenerator.Cleanup()
 ```
 
-### Window with Buttons
+### Window with UI Controls
 
 ```xojo
 // In a Window class
-Private toneGenerator As FMODToneGenerator
+Private toneGenerator As FMODToneGeneratorDSP
 Private updateTimer As Timer
 
 Sub Open()
   // Initialize the tone generator
-  toneGenerator = New FMODToneGenerator
+  toneGenerator = New FMODToneGeneratorDSP
   
   Try
     toneGenerator.Initialize()
@@ -295,18 +247,9 @@ End Sub
 
 Sub SineButtonAction()
   Try
-    toneGenerator.PlayTone(FMODApi.OSCILLATOR_SINE, 0.5)
-    toneGenerator.SetFrequency(440.0)
+    toneGenerator.PlayTone(FMODApi.OSCILLATOR_SINE, volumeSlider.Value / 100.0)
   Catch ex As RuntimeException
     MessageBox("Error playing tone: " + ex.Message)
-  End Try
-End Sub
-
-Sub StopButtonAction()
-  Try
-    toneGenerator.StopTone()
-  Catch ex As RuntimeException
-    MessageBox("Error stopping tone: " + ex.Message)
   End Try
 End Sub
 
@@ -323,6 +266,36 @@ Sub Close()
 End Sub
 ```
 
+## Installation
+
+### Requirements
+
+1. **Xojo**: This project requires Xojo 2019r1 or newer.
+2. **MBS Xojo Plugins**: The project uses MBS Plugins (specifically the DeclareLibraryMBS and DeclareFunctionMBS classes).
+3. **FMOD Core API**: Version 2.03.07 or compatible.
+
+### Setup Steps
+
+1. **Install FMOD Library**:
+   - Download FMOD Core API from [FMOD.com](https://www.fmod.com/download) (requires registration)
+   - Install the FMOD library for your platform:
+     - Windows: Place `fmod.dll` in your application directory
+     - macOS: Place `libfmod.dylib` in `/usr/local/lib` or bundle with your application
+     - Linux: Place `libfmod.so` in a standard library path
+
+2. **Sound Files** (for sound-based implementation):
+   - Create or obtain single-cycle waveform audio files:
+     - sine.wav
+     - square.wav
+     - saw.wav
+     - triangle.wav
+   - Place these files in your application directory
+
+3. **Project Setup**:
+   - Import the project files into Xojo
+   - Ensure MBS Plugins are added to your project
+   - Verify the library paths in the code match your FMOD installation
+
 ## Troubleshooting
 
 ### Common Issues
@@ -331,13 +304,17 @@ End Sub
 
 Ensure that the FMOD library is in the correct location:
 
-- **Windows**: Place fmod.dll in the same directory as your application or in a system path
-- **macOS**: Place libfmod.dylib in /usr/local/lib or bundle it with your application
-- **Linux**: Place libfmod.so in a standard library path
+- **Windows**: `fmod.dll` should be in the same directory as your application
+- **macOS**: `libfmod.dylib` should be in `/usr/local/lib` or bundled with your application
+- **Linux**: `libfmod.so` should be in a standard library path
 
-#### "Function not found" error
+#### "Record busy" or "Event not playing" errors
 
-Make sure you're using the correct FMOD version that matches your declares. The function names and parameters should match exactly.
+These errors can occur with certain FMOD versions when setting DSP parameters. Try:
+
+1. Changing the `DSPParamSettingOrder` property to use a different approach
+2. Switching to the sound-based implementation
+3. Using a different version of the FMOD library
 
 #### No sound output
 
@@ -346,36 +323,16 @@ Make sure you're using the correct FMOD version that matches your declares. The 
 3. Ensure that the channel volume is set to a non-zero value
 4. Call `Update()` regularly to keep the audio system processing
 
-#### Application crashes
+#### Sound files not found
 
-1. Use Soft Declares or the MBS plugin approach to avoid hard crashes
-2. Implement proper error checking with `ERRCHECK`
-3. Always clean up resources in the `Close` event
+For the sound-based implementation, ensure the waveform files are in the correct location:
 
-### Using MBS Plugins for Robust Declares
-
-The MBS Plugins provide a more robust way to handle external library functions. Here's how to use them correctly:
-
-```xojo
-// First load the library
-Dim fmodLibrary As New DeclareLibraryMBS("fmod.dll") // Adjust path for platform
-
-// Get a symbol from the library
-Dim symbolPtr As Ptr = fmodLibrary.Symbol("FMOD_System_Create")
-
-// Create a function declare with the correct signature
-// Format: (parameter types)return type
-// i = integer, p = pointer, f = float, b = boolean
-Dim createFunc As New DeclareFunctionMBS("(pi)i", symbolPtr)
-
-// Call the function
-Dim systemPtrMB As New MemoryBlock(4)
-Dim result As Integer = createFunc.Invoke(systemPtrMB, &h00010000)
-```
+- Place the `.wav` files in the same directory as your application
+- Verify the filenames match exactly what's in the code
 
 ## License
 
-This project uses the FMOD Core API by by Firelight Technologies Pty Ltd., which requires proper licensing for use in commercial applications. Please refer to the [FMOD licensing page](https://www.fmod.com/licensing) for details.
+This project uses the FMOD Core API by by Firelight Technologies Pty Ltd., which requires proper licensing for use in commercial applications. Please refer to the [FMOD licensing page](https://www.fmod.com/licensing) for details. The FMOD Core API library, part of the FMOD Engine, is available for download for registered users at [FMOD Website](https://www.fmod.com/). While the license is commercial, free indie license is granted to developers with registered projects with less than $200k revenue per year, on a small (under $600k) development budget (as in April 2025).
 
 Christian Schmitz Software GmbH, of Nickenich Germany is the owner, developer and sole copyright holder of the MBS Plugins product, which is licensed -not sold- to developer on a non-exclusive basis. [MBS Plugins Licensing](https://www.monkeybreadsoftware.de/xojo/license.shtml)
 
