@@ -1,5 +1,3 @@
-![FMOD Logo](res/FMODLogoBlack.png)
-
 <img src="res/FMODLogoBlack.png" width="240">
 
 # FMOD Tone Generator for Xojo
