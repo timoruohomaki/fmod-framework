@@ -46,9 +46,26 @@ Protected Module FMODApi
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function FMOD_DSP_Release(dsp as Ptr) As Integer
-		  Declare Function FMOD_DSP_Release_Lib Lib "fmod" Alias "FMOD_DSP_Release" (dsp As Ptr) As Integer
-		  Return FMOD_DSP_Release_Lib(dsp)
+		Function FMOD_DSP_Release(dspPtr As Ptr) As Integer
+		  If Not mInitialized Then
+		    If Not InitializeFMODDeclares() Then
+		      System.Log(System.LogLevelError, "FMOD declares not initialized")
+		      Return -1
+		    End If
+		  End If
+		  
+		  Try
+		    System.Log(System.LogLevelDebug, "Invoking FMOD_DSP_Release")
+		    
+		    // Use array parameter approach for consistency
+		    Dim params() As Variant
+		    params.Append(dspPtr)
+		    
+		    Return mFMOD_DSP_Release.Invoke(params)
+		  Catch ex As RuntimeException
+		    System.Log(System.LogLevelError, "FMOD_DSP_Release error: " + ex.Message)
+		    Return -1
+		  End Try
 		End Function
 	#tag EndMethod
 
@@ -124,28 +141,174 @@ Protected Module FMODApi
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function FMOD_System_Init(systemPtr As Ptr, maxChannels As Integer, flags As UInt32, extraDriverData As Ptr) As Integer
-		  #If TargetMacOS Then
-		    Soft Declare Function FMOD_System_Init_Lib Lib "libfmod" Alias "FMOD_System_Init" (systemPtr As Ptr, maxChannels As Integer, flags As UInt32, extraDriverData As Ptr) As Integer
-		  #ElseIf TargetWindows Then
-		    Soft Declare Function FMOD_System_Init_Lib Lib "fmod" Alias "FMOD_System_Init" (systemPtr As Ptr, maxChannels As Integer, flags As UInt32, extraDriverData As Ptr) As Integer
-		  #ElseIf TargetLinux Then
-		    Soft Declare Function FMOD_System_Init_Lib Lib "libfmod" Alias "FMOD_System_Init" (systemPtr As Ptr, maxChannels As Integer, flags As UInt32, extraDriverData As Ptr) As Integer
-		  #EndIf
+		Function FMOD_System_CreateStream(systemPtr As Ptr, filename As String, flags As UInt32, info As Ptr, ByRef sound As FMODSound) As Integer
+		  If Not mInitialized Then
+		    If Not InitializeFMODDeclares() Then
+		      System.Log(System.LogLevelError, "FMOD declares not initialized")
+		      Return -1
+		    End If
+		  End If
 		  
 		  Try
-		    Return FMOD_System_Init_Lib(systemPtr, maxChannels, flags, extraDriverData)
+		    Dim soundMB As New MemoryBlock(4)
+		    
+		    Dim params() As Variant
+		    params.Append(systemPtr)
+		    params.Append(filename)
+		    params.Append(flags)
+		    params.Append(info)
+		    params.Append(soundMB)
+		    
+		    Dim result As Integer = mFMOD_System_CreateStream.Invoke(params)
+		    
+		    If result = 0 Then
+		      sound.Ptr = soundMB.Ptr(0)
+		    End If
+		    
+		    Return result
 		  Catch ex As RuntimeException
-		    System.DebugLog("FMOD_System_Init error: " + ex.Message)
-		    Return -1 // Return an error code
+		    System.Log(System.LogLevelError, "FMOD_System_CreateStream error: " + ex.Message)
+		    Return -1
 		  End Try
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function FMOD_System_PlayDSP(systemPtr As Ptr, dsp As Ptr, channelGroup As Ptr, paused As Boolean, ByRef channel As FMODChannel) As Integer
-		  Declare Function FMOD_System_PlayDSP_Lib Lib "fmod" Alias "FMOD_System_PlayDSP" (systemPtr as Ptr, dsp As Ptr, channelGroup As Ptr, paused As Boolean, ByRef channel As FMODChannel) As Integer
-		  Return FMOD_System_PlayDSP_Lib(systemPtr, dsp, channelGroup, paused, channel)
+		Function FMOD_System_GetMasterChannelGroup(systemPtr As Ptr, ByRef channelGroup As FMODChannelGroup) As Integer
+		  If Not mInitialized Then
+		    If Not InitializeFMODDeclares() Then
+		      System.Log(System.LogLevelError, "FMOD declares not initialized")
+		      Return -1
+		    End If
+		  End If
+		  
+		  Try
+		    System.Log(System.LogLevelDebug, "Getting master channel group")
+		    
+		    // Use array parameter approach for consistency
+		    Dim channelGroupMB As New MemoryBlock(4)
+		    
+		    Dim params() As Variant
+		    params.Append(systemPtr)
+		    params.Append(channelGroupMB)
+		    
+		    Dim result As Integer = mFMOD_System_GetMasterChannelGroup.Invoke(params)
+		    
+		    If result = 0 Then
+		      channelGroup.Ptr = channelGroupMB.Ptr(0)
+		    End If
+		    
+		    Return result
+		  Catch ex As RuntimeException
+		    System.Log(System.LogLevelError, "FMOD_System_GetMasterChannelGroup error: " + ex.Message)
+		    Return -1
+		  End Try
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function FMOD_System_Init(systemPtr As Ptr, maxChannels As Integer, flags As UInt32, extraDriverData As Ptr) As Integer
+		  If Not mInitialized Then
+		    If Not InitializeFMODDeclares() Then
+		      System.Log(System.LogLevelError, "FMOD declares not initialized")
+		      Return -1
+		    End If
+		  End If
+		  
+		  Try
+		    System.Log(System.LogLevelDebug, "Invoking FMOD_System_Init with maxChannels=" + Str(maxChannels))
+		    
+		    // The error suggests there's a mismatch in parameter types
+		    // Let's explicitly cast parameters to match the expected types
+		    Dim result As Integer
+		    
+		    // Try using array syntax for multiple parameters with DeclareFunctionMBS
+		    Dim params() As Variant
+		    params.Append(systemPtr)
+		    params.Append(maxChannels)
+		    params.Append(flags)
+		    params.Append(extraDriverData)
+		    
+		    result = mFMOD_System_Init.Invoke(params)
+		    
+		    Return result
+		  Catch ex As RuntimeException
+		    System.Log(System.LogLevelError, "FMOD_System_Init error: " + ex.Message)
+		    Return -1
+		  End Try
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function FMOD_System_PlayDSP(systemPtr As Ptr, dspPtr As Ptr, channelGroupPtr As Ptr, paused As Boolean, ByRef channel As FMODChannel) As Integer
+		  If Not mInitialized Then
+		    If Not InitializeFMODDeclares() Then
+		      System.Log(System.LogLevelError, "FMOD declares not initialized")
+		      Return -1
+		    End If
+		  End If
+		  
+		  Try
+		    System.Log(System.LogLevelDebug, "Invoking FMOD_System_PlayDSP")
+		    System.Log(System.LogLevelDebug, "DSP ptr: " + If(dspPtr = Nil, "Nil", "Non-nil"))
+		    
+		    // Create a MemoryBlock to receive the channel pointer
+		    Dim channelMB As New MemoryBlock(4)
+		    
+		    // Use array or the specific invoke method based on your MBS plugin
+		    Dim params() As Variant
+		    params.Append(systemPtr)
+		    params.Append(dspPtr)
+		    params.Append(channelGroupPtr)
+		    params.Append(If(paused, 1, 0))  // Convert Boolean to Integer
+		    params.Append(channelMB)
+		    
+		    Dim result As Integer = mFMOD_System_PlayDSP.Invoke(params)
+		    
+		    // Extract the channel pointer
+		    If result = 0 Then
+		      channel.Ptr = channelMB.Ptr(0)
+		      System.Log(System.LogLevelDebug, "Channel pointer received: " + If(channel.Ptr = Nil, "Nil", "Non-nil"))
+		    End If
+		    
+		    Return result
+		  Catch ex As RuntimeException
+		    System.Log(System.LogLevelError, "FMOD_System_PlayDSP error: " + ex.Message)
+		    Return -1
+		  End Try
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function FMOD_System_Playsound(systemPtr As Ptr, sound As Ptr, channelGroup As Ptr, paused As Boolean, ByRef channel As FMODChannel) As Integer
+		  If Not mInitialized Then
+		    If Not InitializeFMODDeclares() Then
+		      System.Log(System.LogLevelError, "FMOD declares not initialized")
+		      Return -1
+		    End If
+		  End If
+		  
+		  Try
+		    Dim channelMB As New MemoryBlock(4)
+		    
+		    Dim params() As Variant
+		    params.Append(systemPtr)
+		    params.Append(sound)
+		    params.Append(channelGroup)
+		    params.Append(If(paused, 1, 0))
+		    params.Append(channelMB)
+		    
+		    Dim result As Integer = mFMOD_System_PlaySound.Invoke(params)
+		    
+		    If result = 0 Then
+		      channel.Ptr = channelMB.Ptr(0)
+		    End If
+		    
+		    Return result
+		  Catch ex As RuntimeException
+		    System.Log(System.LogLevelError, "FMOD_System_PlaySound error: " + ex.Message)
+		    Return -1
+		  End Try
 		End Function
 	#tag EndMethod
 
@@ -203,7 +366,72 @@ Protected Module FMODApi
 		    Return "End of data"
 		  Case FMOD_ERR_FILE_NOTFOUND
 		    Return "File not found"
-		    
+		  Case 12
+		    Return "File format error"
+		  Case 13
+		    Return "File bad or corrupt"
+		  Case 14
+		    Return "Insufficient memory"
+		  Case 15
+		    Return "Invalid file handle"
+		  Case 16
+		    Return "Invalid parameter"
+		  Case 17
+		    Return "Invalid speaker"
+		  Case 18
+		    Return "Plug-in resource unavailable"
+		  Case 19
+		    Return "Plug-in missing"
+		  Case 20
+		    Return "Plug-in output in use or unsupported"
+		  Case 21
+		    Return "Plug-in type not found"
+		  Case 22
+		    Return "Insufficient memory or resources"
+		  Case 23
+		    Return "Unimplemented feature"
+		  Case 24
+		    Return "Uninitialized system"
+		  Case 25
+		    Return "Unsupported feature"
+		  Case 26
+		    Return "Version mismatch"
+		  Case 27
+		    Return "Event not found"
+		  Case 28
+		    Return "Event already loaded"
+		  Case 29
+		    Return "Event failed"
+		  Case 30
+		    Return "Event already playing"
+		  Case 31
+		    Return "Event not playing"
+		  Case 32
+		    Return "Event parameter not found"
+		  Case 33
+		    Return "Event category not found"
+		  Case 34
+		    Return "Invalid event"
+		  Case 35
+		    Return "Core or driver level error"
+		  Case 68
+		    Return "Record busy - sound is still playing or recording"
+		  Case 69
+		    Return "Cannot lock a non-blocking thread"
+		  Case 70
+		    Return "Thread not found"
+		  Case 71
+		    Return "Command interrupted by a higher priority command"
+		  Case 72
+		    Return "Resource still in use by another thread"
+		  Case 73
+		    Return "Invalid source channel"
+		  Case 74
+		    Return "Destination channel is a source channel"
+		  Case 75
+		    Return "DSP channel is a source channel"
+		  Case -1
+		    Return "MBS declare error"
 		  Case Else
 		    Return "Unknown error: " + Str(result)
 		    
@@ -234,12 +462,12 @@ Protected Module FMODApi
 		    Return False
 		  End If
 		  
-		  #if DebugBuild then
-		    
-		    Var lines() As String = mFMODLibrary.SymbolNames
-		    Break // look in list of functions
-		    
-		  #endif
+		  // #if DebugBuild then
+		  // 
+		  // Var lines() As String = mFMODLibrary.SymbolNames
+		  // Break // look in list of functions
+		  // 
+		  // #endif
 		  
 		  // Get function symbols and create function declares
 		  Dim p As Ptr = mFMODLibrary.Symbol("FMOD_System_Create")
@@ -258,7 +486,7 @@ Protected Module FMODApi
 		    Return False
 		  End If
 		  
-		  mFMOD_System_Init = New DeclareFunctionMBS("(pipi)i", p)
+		  mFMOD_System_Init = New DeclareFunctionMBS("(piii)i", p)
 		  
 		  p = mFMODLibrary.Symbol("FMOD_System_Close")
 		  If p = Nil Then
@@ -313,12 +541,14 @@ Protected Module FMODApi
 		  
 		  // Channel functions
 		  
+		  
 		  p = mFMODLibrary.Symbol("FMOD_System_PlayDSP")
 		  If p = Nil Then
 		    System.DebugLog("Failed to find FMOD_System_PlayDSP symbol")
 		    Return False
 		  End If
-		  mFMOD_System_PlayDSP = New DeclareFunctionMBS("(pppbp)i", p)
+		  
+		  mFMOD_System_PlayDSP = New DeclareFunctionMBS("(pppZp)i", p)
 		  
 		  p = mFMODLibrary.Symbol("FMOD_Channel_SetVolume")
 		  If p = Nil Then
@@ -353,7 +583,7 @@ Protected Module FMODApi
 		    System.DebugLog("Failed to find FMOD_Channel_SetPaused symbol")
 		    Return False
 		  End If
-		  mFMOD_Channel_SetPaused = New DeclareFunctionMBS("(pb)i", p)
+		  mFMOD_Channel_SetPaused = New DeclareFunctionMBS("(pZ)i", p)
 		  
 		  p = mFMODLibrary.Symbol("FMOD_Channel_Stop")
 		  If p = Nil Then
@@ -368,6 +598,31 @@ Protected Module FMODApi
 		    Return False
 		  End If
 		  mFMOD_Channel_IsPlaying = New DeclareFunctionMBS("(pp)i", p)
+		  
+		  // Master channel functions
+		  
+		  p = mFMODLibrary.Symbol("FMOD_System_GetMasterChannelGroup")
+		  If p = Nil Then
+		    System.Log(System.LogLevelError, "Failed to find FMOD_System_GetMasterChannelGroup symbol")
+		    Return False
+		  End If
+		  mFMOD_System_GetMasterChannelGroup = New DeclareFunctionMBS("(pp)i", p)
+		  
+		  // other functions
+		  
+		  p = mFMODLibrary.Symbol("FMOD_System_CreateStream")
+		  If p = Nil Then
+		    System.Log(System.LogLevelError, "Failed to find FMOD_System_CreateStream symbol")
+		    Return False
+		  End If
+		  mFMOD_System_CreateStream = New DeclareFunctionMBS("(psipi)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_System_PlaySound")
+		  If p = Nil Then
+		    System.Log(System.LogLevelError, "Failed to find FMOD_System_PlaySound symbol")
+		    Return False
+		  End If
+		  mFMOD_System_PlaySound = New DeclareFunctionMBS("(pppip)i", p)
 		  
 		  // Additional verification could be added for other functions
 		  
@@ -440,11 +695,23 @@ Protected Module FMODApi
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mFMOD_System_CreateStream As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_System_GetMasterChannelGroup As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mFMOD_System_Init As DeclareFunctionMBS
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
 		Private mFMOD_System_PlayDSP As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mFMOD_System_PlaySound As DeclareFunctionMBS
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -523,6 +790,9 @@ Protected Module FMODApi
 	#tag Constant, Name = FMOD_INIT_NORMAL, Type = Double, Dynamic = False, Default = \"&h00000000", Scope = Public
 	#tag EndConstant
 
+	#tag Constant, Name = FMOD_LOOP_NORMAL, Type = Double, Dynamic = False, Default = \"&h00000001", Scope = Public
+	#tag EndConstant
+
 	#tag Constant, Name = FMOD_OK, Type = Double, Dynamic = False, Default = \"0", Scope = Public
 	#tag EndConstant
 
@@ -546,8 +816,16 @@ Protected Module FMODApi
 		Ptr As Ptr
 	#tag EndStructure
 
+	#tag Structure, Name = FMODChannelGroup, Flags = &h0
+		Ptr as Ptr
+	#tag EndStructure
+
 	#tag Structure, Name = FMODDSP, Flags = &h0
 		Ptr As Ptr
+	#tag EndStructure
+
+	#tag Structure, Name = FMODSound, Flags = &h0
+		Ptr as Ptr
 	#tag EndStructure
 
 	#tag Structure, Name = FMODSystem, Flags = &h0

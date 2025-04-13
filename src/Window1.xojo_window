@@ -88,7 +88,6 @@ Begin DesktopWindow Window1
       Width           =   80
    End
    Begin Timer fmodTimer
-      Enabled         =   True
       Index           =   -2147483648
       LockedInPosition=   False
       Period          =   100
@@ -133,6 +132,10 @@ End
 	#tag EndEvent
 
 
+	#tag Property, Flags = &h21
+		Private previousEx As String
+	#tag EndProperty
+
 	#tag Property, Flags = &h0
 		toneGenerator As FMODToneGenerator
 	#tag EndProperty
@@ -148,7 +151,7 @@ End
 		    toneGenerator.PlayTone(FMODApi.OSCILLATOR_SINE, 0.5)
 		    toneGenerator.SetFrequency(440.0)
 		  Catch ex As RuntimeException
-		    MessageBox("Error playing tone: " + ex.Message)
+		    System.Log(System.LogLevelError, "Error playing tone: " + ex.Message)
 		  End Try
 		End Sub
 	#tag EndEvent
@@ -168,9 +171,19 @@ End
 	#tag Event
 		Sub Action()
 		  If toneGenerator <> Nil Then
+		    
+		    var d as DateTime = DateTime.Now
+		    
+		    self.Title = d.Second.ToString
+		    
 		    Try
 		      toneGenerator.Update()
 		    Catch ex As RuntimeException
+		      if ex.Message <> previousEx then
+		        System.Log(System.LogLevelError, "Error in update timer: " + ex.Message)
+		        
+		        previousEx = ex.Message
+		      end
 		      // Handle any errors
 		    End Try
 		  End If
