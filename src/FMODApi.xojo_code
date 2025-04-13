@@ -243,6 +243,7 @@ Protected Module FMODApi
 		  
 		  // Get function symbols and create function declares
 		  Dim p As Ptr = mFMODLibrary.Symbol("FMOD_System_Create")
+		  
 		  If p = Nil Then
 		    System.DebugLog("Failed to find FMOD_System_Create symbol")
 		    Return False
@@ -250,65 +251,123 @@ Protected Module FMODApi
 		  
 		  mFMOD_System_Create = New DeclareFunctionMBS("(pi)i", p)
 		  
-		  // Create System functions
-		  mFMOD_System_Create = New DeclareFunctionMBS(libraryName, "FMOD_System_Create")
-		  mFMOD_System_Create.Declare("FMOD_System_Create", "pi", "i")
+		  p = mFMODLibrary.Symbol("FMOD_System_Init")
 		  
-		  mFMOD_System_Init = New DeclareFunctionMBS(libraryName, "FMOD_System_Init")
-		  mFMOD_System_Init.Declare("FMOD_System_Init", "pipi", "i")
-		  
-		  mFMOD_System_Close = New DeclareFunctionMBS(libraryName, "FMOD_System_Close")
-		  mFMOD_System_Close.Declare("FMOD_System_Close", "p", "i")
-		  
-		  mFMOD_System_Release = New DeclareFunctionMBS(libraryName, "FMOD_System_Release")
-		  mFMOD_System_Release.Declare("FMOD_System_Release", "p", "i")
-		  
-		  mFMOD_System_Update = New DeclareFunctionMBS(libraryName, "FMOD_System_Update")
-		  mFMOD_System_Update.Declare("FMOD_System_Update", "p", "i")
-		  
-		  // DSP functions
-		  mFMOD_System_CreateDSPByType = New DeclareFunctionMBS(libraryName, "FMOD_System_CreateDSPByType")
-		  mFMOD_System_CreateDSPByType.Declare("FMOD_System_CreateDSPByType", "pip", "i")
-		  
-		  mFMOD_DSP_SetParameterFloat = New DeclareFunctionMBS(libraryName, "FMOD_DSP_SetParameterFloat")
-		  mFMOD_DSP_SetParameterFloat.Declare("FMOD_DSP_SetParameterFloat", "pif", "i")
-		  
-		  mFMOD_DSP_SetParameterInt = New DeclareFunctionMBS(libraryName, "FMOD_DSP_SetParameterInt")
-		  mFMOD_DSP_SetParameterInt.Declare("FMOD_DSP_SetParameterInt", "pii", "i")
-		  
-		  mFMOD_DSP_Release = New DeclareFunctionMBS(libraryName, "FMOD_DSP_Release")
-		  mFMOD_DSP_Release.Declare("FMOD_DSP_Release", "p", "i")
-		  
-		  // Channel functions
-		  mFMOD_System_PlayDSP = New DeclareFunctionMBS(libraryName, "FMOD_System_PlayDSP")
-		  mFMOD_System_PlayDSP.Declare("FMOD_System_PlayDSP", "pppbp", "i")
-		  
-		  mFMOD_Channel_SetVolume = New DeclareFunctionMBS(libraryName, "FMOD_Channel_SetVolume")
-		  mFMOD_Channel_SetVolume.Declare("FMOD_Channel_SetVolume", "pf", "i")
-		  
-		  mFMOD_Channel_SetFrequency = New DeclareFunctionMBS(libraryName, "FMOD_Channel_SetFrequency")
-		  mFMOD_Channel_SetFrequency.Declare("FMOD_Channel_SetFrequency", "pf", "i")
-		  
-		  mFMOD_Channel_GetVolume = New DeclareFunctionMBS(libraryName, "FMOD_Channel_GetVolume")
-		  mFMOD_Channel_GetVolume.Declare("FMOD_Channel_GetVolume", "pp", "i")
-		  
-		  mFMOD_Channel_GetFrequency = New DeclareFunctionMBS(libraryName, "FMOD_Channel_GetFrequency")
-		  mFMOD_Channel_GetFrequency.Declare("FMOD_Channel_GetFrequency", "pp", "i")
-		  
-		  mFMOD_Channel_SetPaused = New DeclareFunctionMBS(libraryName, "FMOD_Channel_SetPaused")
-		  mFMOD_Channel_SetPaused.Declare("FMOD_Channel_SetPaused", "pb", "i")
-		  
-		  mFMOD_Channel_Stop = New DeclareFunctionMBS(libraryName, "FMOD_Channel_Stop")
-		  mFMOD_Channel_Stop.Declare("FMOD_Channel_Stop", "p", "i")
-		  
-		  mFMOD_Channel_IsPlaying = New DeclareFunctionMBS(libraryName, "FMOD_Channel_IsPlaying")
-		  mFMOD_Channel_IsPlaying.Declare("FMOD_Channel_IsPlaying", "pp", "i")
-		  
-		  // Verify that all declares were created successfully
-		  If mFMOD_System_Create = Nil Or Not mFMOD_System_Create.Available Then
-		    System.DebugLog("FMOD_System_Create not available")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_System_Init symbol")
 		    Return False
 		  End If
+		  
+		  mFMOD_System_Init = New DeclareFunctionMBS("(pipi)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_System_Close")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_System_Close symbol")
+		    Return False
+		  End If
+		  mFMOD_System_Close = New DeclareFunctionMBS("(p)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_System_Release")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_System_Release symbol")
+		    Return False
+		  End If
+		  mFMOD_System_Release = New DeclareFunctionMBS("(p)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_System_Update")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_System_Update symbol")
+		    Return False
+		  End If
+		  mFMOD_System_Update = New DeclareFunctionMBS("(p)i", p)
+		  
+		  // DSP Functions
+		  
+		  p = mFMODLibrary.Symbol("FMOD_System_CreateDSPByType")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_System_CreateDSPByType symbol")
+		    Return False
+		  End If
+		  mFMOD_System_CreateDSPByType = New DeclareFunctionMBS("(pip)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_DSP_SetParameterFloat")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_DSP_SetParameterFloat symbol")
+		    Return False
+		  End If
+		  mFMOD_DSP_SetParameterFloat = New DeclareFunctionMBS("(pif)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_DSP_SetParameterInt")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_DSP_SetParameterInt symbol")
+		    Return False
+		  End If
+		  mFMOD_DSP_SetParameterInt = New DeclareFunctionMBS("(pii)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_DSP_Release")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_DSP_Release symbol")
+		    Return False
+		  End If
+		  mFMOD_DSP_Release = New DeclareFunctionMBS("(p)i", p)
+		  
+		  // Channel functions
+		  
+		  p = mFMODLibrary.Symbol("FMOD_System_PlayDSP")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_System_PlayDSP symbol")
+		    Return False
+		  End If
+		  mFMOD_System_PlayDSP = New DeclareFunctionMBS("(pppbp)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_Channel_SetVolume")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_Channel_SetVolume symbol")
+		    Return False
+		  End If
+		  mFMOD_Channel_SetVolume = New DeclareFunctionMBS("(pf)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_Channel_SetFrequency")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_Channel_SetFrequency symbol")
+		    Return False
+		  End If
+		  mFMOD_Channel_SetFrequency = New DeclareFunctionMBS("(pf)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_Channel_GetVolume")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_Channel_GetVolume symbol")
+		    Return False
+		  End If
+		  mFMOD_Channel_GetVolume = New DeclareFunctionMBS("(pp)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_Channel_GetFrequency")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_Channel_GetFrequency symbol")
+		    Return False
+		  End If
+		  mFMOD_Channel_GetFrequency = New DeclareFunctionMBS("(pp)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_Channel_SetPaused")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_Channel_SetPaused symbol")
+		    Return False
+		  End If
+		  mFMOD_Channel_SetPaused = New DeclareFunctionMBS("(pb)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_Channel_Stop")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_Channel_Stop symbol")
+		    Return False
+		  End If
+		  mFMOD_Channel_Stop = New DeclareFunctionMBS("(p)i", p)
+		  
+		  p = mFMODLibrary.Symbol("FMOD_Channel_IsPlaying")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_Channel_IsPlaying symbol")
+		    Return False
+		  End If
+		  mFMOD_Channel_IsPlaying = New DeclareFunctionMBS("(pp)i", p)
 		  
 		  // Additional verification could be added for other functions
 		  
@@ -324,8 +383,8 @@ Protected Module FMODApi
 	#tag EndMethod
 
 
-	#tag Property, Flags = &h0
-		mFMODLibrary As DeclareLibraryMBS
+	#tag Property, Flags = &h21
+		Private mFMODLibrary As DeclareLibraryMBS
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
