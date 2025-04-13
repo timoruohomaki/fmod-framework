@@ -372,6 +372,8 @@ Dim result As Integer = createFunc.Invoke(systemPtrMB, &h00010000)
 
 This project uses the FMOD Core API, which requires proper licensing for use in commercial applications. Please refer to the [FMOD licensing page](https://www.fmod.com/licensing) for details.
 
+Christian Schmitz Software GmbH, of Nickenich Germany is the owner, developer and sole copyright holder of the MBS Plugins product, which is licensed -not sold- to developer on a non-exclusive basis. [MBS Plugins Licensing](https://www.monkeybreadsoftware.de/xojo/license.shtml)
+
 The Xojo wrapper code itself is provided under the MIT License.
 
 ---
