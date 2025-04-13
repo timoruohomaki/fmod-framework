@@ -228,10 +228,18 @@ Protected Module FMODApi
 		  
 		  // Load the library
 		  mFMODLibrary = New DeclareLibraryMBS(libraryName)
-		  If mFMODLibrary = Nil Or Not mFMODLibrary.Available Then
+		  
+		  If mFMODLibrary = Nil  Then
 		    System.DebugLog("Failed to load FMOD library: " + libraryName)
 		    Return False
 		  End If
+		  
+		  #if DebugBuild then
+		    
+		    Var lines() As String = mFMODLibrary.SymbolNames
+		    Break // look in list of functions
+		    
+		  #endif
 		  
 		  // Get function symbols and create function declares
 		  Dim p As Ptr = mFMODLibrary.Symbol("FMOD_System_Create")
@@ -239,9 +247,8 @@ Protected Module FMODApi
 		    System.DebugLog("Failed to find FMOD_System_Create symbol")
 		    Return False
 		  End If
+		  
 		  mFMOD_System_Create = New DeclareFunctionMBS("(pi)i", p)
-		  
-		  
 		  
 		  // Create System functions
 		  mFMOD_System_Create = New DeclareFunctionMBS(libraryName, "FMOD_System_Create")
