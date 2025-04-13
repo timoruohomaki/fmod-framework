@@ -1,5 +1,7 @@
 ![FMOD Logo](res/FMODLogoBlack.png)
 
+<img src="res/FMODLogoBlack.png" width="240">
+
 # FMOD Tone Generator for Xojo
 
 This project implements a tone generator in Xojo using the FMOD Core API. It allows you to generate and play different waveforms (sine, square, saw, triangle) at various frequencies and volumes.
