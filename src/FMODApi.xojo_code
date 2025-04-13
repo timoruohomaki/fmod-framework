@@ -226,6 +226,23 @@ Protected Module FMODApi
 		    libraryName = "libfmod.so"
 		  #EndIf
 		  
+		  // Load the library
+		  mFMODLibrary = New DeclareLibraryMBS(libraryName)
+		  If mFMODLibrary = Nil Or Not mFMODLibrary.Available Then
+		    System.DebugLog("Failed to load FMOD library: " + libraryName)
+		    Return False
+		  End If
+		  
+		  // Get function symbols and create function declares
+		  Dim p As Ptr = mFMODLibrary.Symbol("FMOD_System_Create")
+		  If p = Nil Then
+		    System.DebugLog("Failed to find FMOD_System_Create symbol")
+		    Return False
+		  End If
+		  mFMOD_System_Create = New DeclareFunctionMBS("(pi)i", p)
+		  
+		  
+		  
 		  // Create System functions
 		  mFMOD_System_Create = New DeclareFunctionMBS(libraryName, "FMOD_System_Create")
 		  mFMOD_System_Create.Declare("FMOD_System_Create", "pi", "i")
@@ -299,6 +316,10 @@ Protected Module FMODApi
 		End Sub
 	#tag EndMethod
 
+
+	#tag Property, Flags = &h0
+		mFMODLibrary As DeclareLibraryMBS
+	#tag EndProperty
 
 	#tag Property, Flags = &h21
 		Private mFMOD_Channel_GetFrequency As DeclareFunctionMBS
