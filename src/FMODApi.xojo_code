@@ -211,8 +211,8 @@ Protected Module FMODApi
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Function InitializeFMODDeclares() As Boolean
+	#tag Method, Flags = &h0
+		Function InitializeFMODDeclares() As Boolean
 		  If mInitialized Then Return True
 		  
 		  // Determine the library name based on platform
@@ -507,6 +507,14 @@ Protected Module FMODApi
 			Group="Position"
 			InitialValue="0"
 			Type="Integer"
+			EditorType=""
+		#tag EndViewProperty
+		#tag ViewProperty
+			Name="mInitialized"
+			Visible=false
+			Group="Behavior"
+			InitialValue="False"
+			Type="Boolean"
 			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
