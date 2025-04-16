@@ -171,7 +171,7 @@ This framework is provided under the MIT License.
 
 - FMOD Sound System by Firelight Technologies
 - MBS Xojo Plugins by Monkeybread Software
-- (Libsndfile)[https://github.com/libsndfile/libsndfile], originally created by Eric de Castro Lopo
+- [Libsndfile](https://github.com/libsndfile/libsndfile), originally created by Eric de Castro Lopo
 
 ## Contributing
 
