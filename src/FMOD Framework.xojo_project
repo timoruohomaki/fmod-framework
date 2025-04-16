@@ -11,6 +11,7 @@ Class=FMODAudioProfiler;FMODAudioProfiler.xojo_code;&h0000000058FD4FFF;&h0000000
 Module=FMODApi;FMODApi.xojo_code;&h000000003F4B9FFF;&h0000000000000000;false
 Module=ExtKeyStore;../../ExtKeyStore.xojo_binary_code;&h000000004B4A87FF;&h0000000000000000;false
 Class=FMODSound;FMODSound.xojo_code;&h0000000009449FFF;&h0000000000000000;false
+Module=FMOD_RESULT;FMOD_RESULT.xojo_code;&h000000005841F7FF;&h0000000000000000;false
 DefaultWindow=Window1
 AppMenuBar=MainMenuBar
 MajorVersion=1

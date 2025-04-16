@@ -52,6 +52,66 @@ Protected Class FMODSound
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Function CreateFromFile(filePath as String) As FMODSound
+		  Try
+		    Return New FMODSound(filePath)
+		  Catch ex As RuntimeException
+		    FMODSystem.Instance.LogError("Failed to create sound from file: " + ex.Message)
+		    Return Nil
+		  End Try
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function GetLengthMS() As Integer
+		  // returns length in milliseconds
+		  
+		  If SoundPtr = Nil Then Return 0
+		  
+		  Dim length As UInt32
+		  Dim result As Integer
+		  
+		  result = FMOD_Sound_GetLength(SoundPtr, length, FMOD_TIMEUNIT.MS)
+		  
+		  If result <> FMOD_RESULT.OK Then
+		    FMODSystem.Instance.LogError("Failed to get sound length: " + _
+		    FMODSystem.ResultToString(result))
+		    Return 0
+		  End If
+		  
+		  Return length
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub Play()
+		  If SoundPtr = Nil Then Return Nil
+		  
+		  Try
+		    Dim channelPtr As Ptr
+		    Dim result As Integer
+		    
+		    // Play the sound
+		    result = FMOD_System_PlaySound(FMODSystem.Instance.SystemPtr, SoundPtr, _
+		    Nil, paused, channelPtr)
+		    
+		    If result <> FMOD_RESULT.OK Then
+		      FMODSystem.Instance.LogError("Failed to play sound: " + _
+		      FMODSystem.ResultToString(result))
+		      Return Nil
+		    End If
+		    
+		    // Create a channel wrapper
+		    Return New FMODChannel(channelPtr)
+		    
+		  Catch ex As RuntimeException
+		    FMODSystem.Instance.LogError("Error playing sound: " + ex.Message)
+		    Return Nil
+		  End Try
+		End Sub
+	#tag EndMethod
+
 	#tag Method, Flags = &h1
 		Protected Sub SetLoopPoints(loopStart As Integer, loopEnd As Integer)
 		  If SoundPtr = Nil Then Return
