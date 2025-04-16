@@ -58,7 +58,7 @@ Protected Module FMODApi
 		    System.Log(System.LogLevelDebug, "Invoking FMOD_DSP_Release")
 		    
 		    // Use array parameter approach for consistency
-		    Dim params() As Variant
+		    var params() As Variant
 		    params.Append(dspPtr)
 		    
 		    Return mFMOD_DSP_Release.Invoke(params)
@@ -150,16 +150,16 @@ Protected Module FMODApi
 		  End If
 		  
 		  Try
-		    Dim soundMB As New MemoryBlock(4)
+		    var soundMB As New MemoryBlock(4)
 		    
-		    Dim params() As Variant
+		    var params() As Variant
 		    params.Append(systemPtr)
 		    params.Append(filename)
 		    params.Append(flags)
 		    params.Append(info)
 		    params.Append(soundMB)
 		    
-		    Dim result As Integer = mFMOD_System_CreateSound.Invoke(params)
+		    var result As Integer = mFMOD_System_CreateSound.Invoke(params)
 		    
 		    If result = 0 Then
 		      sound.Ptr = soundMB.Ptr(0)
@@ -183,16 +183,16 @@ Protected Module FMODApi
 		  End If
 		  
 		  Try
-		    Dim soundMB As New MemoryBlock(4)
+		    var soundMB As New MemoryBlock(4)
 		    
-		    Dim params() As Variant
+		    var params() As Variant
 		    params.Append(systemPtr)
 		    params.Append(filename)
 		    params.Append(flags)
 		    params.Append(info)
 		    params.Append(soundMB)
 		    
-		    Dim result As Integer = mFMOD_System_CreateStream.Invoke(params)
+		    var result As Integer = mFMOD_System_CreateStream.Invoke(params)
 		    
 		    If result = 0 Then
 		      sound.Ptr = soundMB.Ptr(0)
@@ -219,13 +219,13 @@ Protected Module FMODApi
 		    System.Log(System.LogLevelDebug, "Getting master channel group")
 		    
 		    // Use array parameter approach for consistency
-		    Dim channelGroupMB As New MemoryBlock(4)
+		    var channelGroupMB As New MemoryBlock(4)
 		    
-		    Dim params() As Variant
+		    var params() As Variant
 		    params.Append(systemPtr)
 		    params.Append(channelGroupMB)
 		    
-		    Dim result As Integer = mFMOD_System_GetMasterChannelGroup.Invoke(params)
+		    var result As Integer = mFMOD_System_GetMasterChannelGroup.Invoke(params)
 		    
 		    If result = 0 Then
 		      channelGroup.Ptr = channelGroupMB.Ptr(0)
@@ -253,10 +253,10 @@ Protected Module FMODApi
 		    
 		    // The error suggests there's a mismatch in parameter types
 		    // Let's explicitly cast parameters to match the expected types
-		    Dim result As Integer
+		    var result As Integer
 		    
 		    // Try using array syntax for multiple parameters with DeclareFunctionMBS
-		    Dim params() As Variant
+		    var params() As Variant
 		    params.Append(systemPtr)
 		    params.Append(maxChannels)
 		    params.Append(flags)
@@ -286,17 +286,17 @@ Protected Module FMODApi
 		    System.Log(System.LogLevelDebug, "DSP ptr: " + If(dspPtr = Nil, "Nil", "Non-nil"))
 		    
 		    // Create a MemoryBlock to receive the channel pointer
-		    Dim channelMB As New MemoryBlock(4)
+		    var channelMB As New MemoryBlock(4)
 		    
 		    // Use array or the specific invoke method based on your MBS plugin
-		    Dim params() As Variant
+		    var params() As Variant
 		    params.Append(systemPtr)
 		    params.Append(dspPtr)
 		    params.Append(channelGroupPtr)
 		    params.Append(If(paused, 1, 0))  // Convert Boolean to Integer
 		    params.Append(channelMB)
 		    
-		    Dim result As Integer = mFMOD_System_PlayDSP.Invoke(params)
+		    var result As Integer = mFMOD_System_PlayDSP.Invoke(params)
 		    
 		    // Extract the channel pointer
 		    If result = 0 Then
@@ -322,16 +322,16 @@ Protected Module FMODApi
 		  End If
 		  
 		  Try
-		    Dim channelMB As New MemoryBlock(4)
+		    var channelMB As New MemoryBlock(4)
 		    
-		    Dim params() As Variant
+		    var params() As Variant
 		    params.Append(systemPtr)
 		    params.Append(sound)
 		    params.Append(channelGroup)
 		    params.Append(If(paused, 1, 0))
 		    params.Append(channelMB)
 		    
-		    Dim result As Integer = mFMOD_System_PlaySound.Invoke(params)
+		    var result As Integer = mFMOD_System_PlaySound.Invoke(params)
 		    
 		    If result = 0 Then
 		      channel.Ptr = channelMB.Ptr(0)
@@ -495,6 +495,11 @@ Protected Module FMODApi
 		    Return False
 		  End If
 		  
+		  var fmodVersion as Integer
+		  fmodVersion = FMOD_GetVersion()
+		  
+		  System.DebugLog("FMOD library version &h" +hex(fmodVersion)+ " loaded successfully.")
+		  
 		  // #if DebugBuild then
 		  // 
 		  // Var lines() As String = mFMODLibrary.SymbolNames
@@ -503,7 +508,8 @@ Protected Module FMODApi
 		  // #endif
 		  
 		  // Get function symbols and create function declares
-		  Dim p As Ptr = mFMODLibrary.Symbol("FMOD_System_Create")
+		  
+		  var p As Ptr = mFMODLibrary.Symbol("FMOD_System_Create")
 		  
 		  If p = Nil Then
 		    System.DebugLog("Failed to find FMOD_System_Create symbol")
