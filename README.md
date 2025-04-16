@@ -5,6 +5,7 @@
 > [!NOTE]
 > This project is still work in progress, this comment will be removed when it works.
 
+
 A comprehensive framework for integrating FMOD audio capabilities into Xojo applications, providing both file-based audio playback and DSP-based tone generation.
 
 ## Overview
@@ -18,7 +19,7 @@ This framework offers an object-oriented approach to working with FMOD in Xojo, 
 
 ## Requirements
 
-- [Xojo](https://www.xojo.com) (built with Xojo 2025r1)
+- Xojo (tested with Xojo 2021r2.1 and later)
 - FMOD Sound System (www.fmod.com)
 - MBS Xojo Plugins (specifically the SoundFileMBS component)
 
@@ -32,6 +33,11 @@ The framework consists of several key classes:
 - **FMODToneGeneratorDSP** - Class for DSP-based tone generation using oscillators
 - **FMODChannel** - Class for managing playback channels
 - **FMODException** - Exception class for FMOD-related errors
+- **FMODAudioProfiler** - Performance and level monitoring class for FMOD
+- **FMODAudioProfilerListener** - Interface for receiving profiler updates
+- **FMODAudioLevelMeterListener** - Interface for receiving level meter updates
+- **LevelMeterCanvas** - Canvas control for displaying real-time audio levels
+-
 
 ## Installation
 
@@ -162,6 +168,77 @@ The `FMODToneGeneratorDSP` class supports the following oscillator types:
 - For large audio files, consider streaming instead of loading the entire file into memory
 - When using multiple DSP effects, be mindful of CPU usage
 - For time-critical applications, implement proper error handling to prevent audio glitches
+- Use the FMODAudioProfiler to monitor performance metrics in real-time
+
+## Using the Audio Profiler
+
+The framework includes an audio profiler that helps you monitor FMOD performance metrics in real-time:
+
+```xojo
+// Initialize the profiler after FMOD system initialization
+If Not FMODAudioProfiler.Instance.Initialize Then
+  MessageBox("Failed to initialize audio profiler")
+End If
+
+// Set the collection interval (in milliseconds)
+FMODAudioProfiler.Instance.SetCollectionInterval(500) // Update every 500ms
+
+// Create a listener to receive profiler updates
+Dim listener As New ExampleAudioProfilerListener(ProfilerTextArea)
+
+// Add the listener to the profiler
+FMODAudioProfiler.Instance.AddListener(listener)
+
+// Later, when shutting down:
+FMODAudioProfiler.Instance.Shutdown()
+```
+
+The profiler provides information about:
+- CPU usage (DSP, streaming, geometry, update, total)
+- Memory usage (current and maximum allocation)
+- Channel count (total and currently playing)
+- DSP buffer information
+
+## Using the Level Meter
+
+The framework includes a real-time audio level meter that displays the current output levels:
+
+```xojo
+// Add a LevelMeterCanvas to your window
+Dim levelMeter As New LevelMeterCanvas
+levelMeter.Width = 200
+levelMeter.Height = 150
+YourWindow.AddControl(levelMeter)
+
+// The level meter will automatically register itself with the profiler
+// and update in real-time once the profiler is initialized
+
+// You can also create a custom level meter by implementing the interface:
+Class MyCustomMeter Implements FMODAudioLevelMeterListener
+  // Required by the base listener interface
+  Sub OnProfilerUpdate(profiler As FMODAudioProfiler) Implements FMODAudioProfilerListener.OnProfilerUpdate
+    // Process general profiler updates
+  End Sub
+  
+  // Receive level updates
+  Sub OnLevelUpdate(peakLevels() As Single, rmsLevels() As Single, numChannels As Integer) Implements FMODAudioLevelMeterListener.OnLevelUpdate
+    // Process level data
+    // peakLevels - Array of peak levels (0.0 to 1.0) for each channel
+    // rmsLevels - Array of RMS levels (0.0 to 1.0) for each channel
+    // numChannels - Number of audio channels
+    
+    // Convert level to decibels if needed
+    Dim peakDB As Single = FMODAudioProfiler.LevelToDecibels(peakLevels(0))
+  End Sub
+End Class
+```
+
+The level meter provides:
+- Real-time RMS and peak levels for all audio channels
+- Visual representation with color-coded levels (green, yellow, red)
+- Peak hold indicators
+- dB scale display
+- Smooth visual transitions
 
 ## License
 
