@@ -18,7 +18,7 @@ This framework offers an object-oriented approach to working with FMOD in Xojo, 
 
 ## Requirements
 
-- Xojo (built with Xojo 2025r1)
+- [Xojo](https://www.xojo.com) (built with Xojo 2025r1)
 - FMOD Sound System (www.fmod.com)
 - MBS Xojo Plugins (specifically the SoundFileMBS component)
 
