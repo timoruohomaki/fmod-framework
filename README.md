@@ -1,6 +1,6 @@
 <img src="res/FMODLogoBlack.png" width="240">
 
-# FMOD Tone Generator for Xojo
+# FMOD Sound Subsystem for Xojo
 
 > [!NOTE]
 > This project is still work in progress, this comment will be removed when it works.
