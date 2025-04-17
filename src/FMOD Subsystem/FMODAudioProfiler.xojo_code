@@ -56,6 +56,14 @@ Implements IAudioProfiler
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function FMOD_System_GetDSPBufferSize(systemPtr As Ptr, ByRef bufferlength As Integer, ByRef numbuffers As Integer) As Integer
+		  Declare Function FMOD_System_GetDSPBufferSize Lib FMODLib(systemPtr As Ptr, ByRef bufferlength As Integer, ByRef numbuffers As Integer) As Integer
+		  
+		  Return bufferlength
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Function GetAverageCPUUsage() As Double
 		  // Part of the IAudioProfiler interface.
 		  

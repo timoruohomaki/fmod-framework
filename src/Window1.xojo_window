@@ -1,5 +1,5 @@
 #tag DesktopWindow
-Begin DesktopWindow Window1
+Begin DesktopWindow Window1 Implements IAudioProfiler
    Backdrop        =   0
    BackgroundColor =   &cFFFFFF
    Composite       =   False
@@ -21,7 +21,7 @@ Begin DesktopWindow Window1
    MinimumHeight   =   64
    MinimumWidth    =   64
    Resizeable      =   True
-   Title           =   "Untitled"
+   Title           =   "FMOD Test Framework"
    Type            =   0
    Visible         =   True
    Width           =   600
@@ -88,7 +88,6 @@ Begin DesktopWindow Window1
       Width           =   80
    End
    Begin Timer fmodTimer
-      Enabled         =   True
       Index           =   -2147483648
       LockedInPosition=   False
       Period          =   100
@@ -131,6 +130,87 @@ End
 		  
 		End Sub
 	#tag EndEvent
+
+
+	#tag Method, Flags = &h0
+		Sub EndTiming(operationName As String)
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetAverageCPUUsage() As Double
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetPeakMemoryUsage() As UInt64
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetProfileData() As Dictionary
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RecordBufferStats(bufferSize As UInt32, bufferUsage As Double)
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RecordChannelUsage(activeChannels As UInt32, totalChannels As UInt32)
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RecordCPUUsage(moduleIdentifier As String, usagePercentage As Double)
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RecordDSPUsage(dspName As String, usagePercentage As Double)
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub RecordMemoryUsage(moduleIdentifier As String, bytesUsed As UInt64)
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub StartTiming(operationName As String)
+		  // Part of the IAudioProfiler interface.
+		  
+		  
+		End Sub
+	#tag EndMethod
 
 
 	#tag Property, Flags = &h21

@@ -51,7 +51,7 @@ Protected Module FMOD_RESULT
 	#tag Constant, Name = FMOD_ERR_FILE_NOTFOUND, Type = Double, Dynamic = False, Default = \"17", Scope = Public
 	#tag EndConstant
 
-	#tag Constant, Name = FMOD_OK, Type = Double, Dynamic = False, Default = \"0", Scope = Public
+	#tag Constant, Name = OK, Type = Double, Dynamic = False, Default = \"0", Scope = Public
 	#tag EndConstant
 
 
