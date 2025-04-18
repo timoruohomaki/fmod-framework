@@ -18,8 +18,8 @@ Protected Class FMODLibraryManager
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Sub Constructor()
+	#tag Method, Flags = &h0
+		Sub Constructor()
 		  do
 		  loop until LoadLibrary()
 		  
@@ -63,7 +63,7 @@ Protected Class FMODLibraryManager
 
 	#tag Method, Flags = &h0
 		Function DSP_GetMeteringInfo(dsp As Ptr, ByRef outputInfo As FMODStructures.FMOD_DSP_METERING_INFO) As Integer
-		  If Not IsLibraryLoaded() Then Return -1
+		  If Not IsLibraryLoaded() Or mDSPGetMeteringInfo Is Nil Then Return -1
 		  
 		  // For this function, we need to handle the struct specially
 		  // Create a memory block to hold the struct
@@ -156,8 +156,8 @@ Protected Class FMODLibraryManager
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Function GetLibrary() As DeclareLibraryMBS
+	#tag Method, Flags = &h0
+		Function GetLibrary() As DeclareLibraryMBS
 		  Return mFMODLibrary
 		End Function
 	#tag EndMethod
@@ -203,39 +203,6 @@ Protected Class FMODLibraryManager
 
 	#tag Method, Flags = &h0
 		Sub InitializeFunctions()
-		  // // System Creation - FMOD_System_Create
-		  // mCreateSystem = New DeclareFunctionMBS("p@", "i", mFMODLibrary.Symbol("FMOD_System_Create"))
-		  // 
-		  // // System Release - FMOD_System_Release
-		  // mReleaseSystem = New DeclareFunctionMBS("p", "i", mFMODLibrary.Symbol("FMOD_System_Release"))
-		  // 
-		  // // Get DSP Buffer Size - FMOD_System_GetDSPBufferSize
-		  // mGetDSPBufferSize = New DeclareFunctionMBS("p@@", "i", mFMODLibrary.Symbol("FMOD_System_GetDSPBufferSize"))
-		  // 
-		  // // Create DSP by Type - FMOD_System_CreateDSPByType
-		  // mCreateDSPByType = New DeclareFunctionMBS("pi@", "i", mFMODLibrary.Symbol("FMOD_System_CreateDSPByType"))
-		  // 
-		  // // DSP Set Metering Enabled - FMOD_DSP_SetMeteringEnabled
-		  // mDSPSetMeteringEnabled = New DeclareFunctionMBS("pbb", "i", mFMODLibrary.Symbol("FMOD_DSP_SetMeteringEnabled"))
-		  // 
-		  // // DSP Get Metering Info - FMOD_DSP_GetMeteringInfo
-		  // mDSPGetMeteringInfo = New DeclareFunctionMBS("pp@", "i", mFMODLibrary.Symbol("FMOD_DSP_GetMeteringInfo"))
-		  // 
-		  // // Get CPU Usage - FMOD_System_GetCPUUsage
-		  // mGetCPUUsage = New DeclareFunctionMBS("p@", "i", mFMODLibrary.Symbol("FMOD_System_GetCPUUsage"))
-		  // 
-		  // // Get Memory Info - FMOD_System_GetMemoryInfo
-		  // mGetMemoryInfo = New DeclareFunctionMBS("pii@", "i", mFMODLibrary.Symbol("FMOD_System_GetMemoryInfo"))
-		  // 
-		  // // Get Channels Playing - FMOD_System_GetChannelsPlaying
-		  // mGetChannelsPlaying = New DeclareFunctionMBS("p@@", "i", mFMODLibrary.Symbol("FMOD_System_GetChannelsPlaying"))
-		  // 
-		  // // Get Master Channel Group - FMOD_System_GetMasterChannelGroup
-		  // mGetMasterChannelGroup = New DeclareFunctionMBS("p@", "i", mFMODLibrary.Symbol("FMOD_System_GetMasterChannelGroup"))
-		  // 
-		  // // Channel Group Get DSP - FMOD_ChannelGroup_GetDSP
-		  // mChannelGroup_GetDSP = New DeclareFunctionMBS("pi@", "i", mFMODLibrary.Symbol("FMOD_ChannelGroup_GetDSP"))
-		  
 		  
 		  // System Creation - FMOD_System_Create
 		  var createSystemPtr As Ptr = mFMODLibrary.Symbol("FMOD_System_Create")
@@ -306,18 +273,24 @@ Protected Class FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function Instance() As FMODLibraryManager
-		  If mInstance = Nil Then
-		    mInstance = New FMODLibraryManager
-		  End If
+		Function InitSystem(systemPtr As Ptr, maxChannels As Integer, flags As Integer, extraDriverData As Ptr = Nil) As Integer
+		  If Not IsLibraryLoaded() Or mInitSystem Is Nil Then Return -1
 		  
-		  Return mInstance
+		  var params() As Variant
+		  params.Append systemPtr
+		  params.Append maxChannels
+		  params.Append flags
+		  params.Append extraDriverData
+		  
+		  var result As Variant = mInitSystem.Invoke(params)
+		  
+		  Return result.IntegerValue
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function IsLibraryLoaded() As Boolean
-		      Return mFMODLibrary <> Nil
+		  Return mFMODLibrary <> Nil
 		End Function
 	#tag EndMethod
 
@@ -374,6 +347,46 @@ Protected Class FMODLibraryManager
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Function SetNumChannels(systemPtr As Ptr, numChannels As Integer) As Integer
+		  If Not IsLibraryLoaded() Or mSetNumChannels Is Nil Then Return -1
+		  
+		  var params() As Variant
+		  params.Append systemPtr
+		  params.Append numChannels
+		  
+		  var result As Variant = mSetNumChannels.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function UpdateSystem(systemPtr As Ptr) As Integer
+		  If Not IsLibraryLoaded() Or mUpdateSystem Is Nil Then Return -1
+		  
+		  var params() As Variant
+		  params.Append systemPtr
+		  
+		  var result As Variant = mUpdateSystem.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  If mInstance Is Nil Then
+			    mInstance = New FMODLibraryManager
+			  End If
+			  
+			  Return mInstance
+			End Get
+		#tag EndGetter
+		Instance As FMODLibraryManager
+	#tag EndComputedProperty
 
 	#tag Property, Flags = &h21
 		Private mChannelGroup_GetDSP As DeclareFunctionMBS
@@ -423,12 +436,24 @@ Protected Class FMODLibraryManager
 		Private mGetMemoryInfo As DeclareFunctionMBS
 	#tag EndProperty
 
+	#tag Property, Flags = &h21
+		Private mInitSystem As DeclareFunctionMBS
+	#tag EndProperty
+
 	#tag Property, Flags = &h1
 		Protected mInstance As FMODLibraryManager
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
 		Private mReleaseSystem As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mSetNumChannels As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mUpdateSystem As DeclareFunctionMBS
 	#tag EndProperty
 
 
@@ -470,14 +495,6 @@ Protected Class FMODLibraryManager
 			Visible=true
 			Group="Position"
 			InitialValue="0"
-			Type="Integer"
-			EditorType=""
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="mInstance"
-			Visible=false
-			Group="Behavior"
-			InitialValue=""
 			Type="Integer"
 			EditorType=""
 		#tag EndViewProperty

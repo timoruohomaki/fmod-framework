@@ -188,6 +188,12 @@ Protected Class FMODStructures
 		End Function
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub MemoryBlockToMeteringInfo()
+		  
+		End Sub
+	#tag EndMethod
+
 
 	#tag Constant, Name = ERR_DSP_TYPE, Type = Double, Dynamic = False, Default = \"12", Scope = Public
 	#tag EndConstant
