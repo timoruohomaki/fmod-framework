@@ -5,15 +5,6 @@ Inherits DesktopApplication
 		Sub Opening()
 		  do
 		  loop until RegisterPlugins
-		  
-		  if Not FMODApi.InitializeFMODDeclares() Then
-		    
-		    MessageBox("Failed to initialize FMOD. The application will close.")
-		    
-		    Quit
-		    
-		    Return
-		  End If
 		End Sub
 	#tag EndEvent
 

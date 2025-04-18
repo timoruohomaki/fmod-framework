@@ -201,7 +201,35 @@ Implements IAudioProfiler
 
 
 	#tag Property, Flags = &h21
+		Private mChannelsPlaying As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mCPUReadings As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mCPUUsage As FMODStructures.FMOD_CPU_USAGE
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mDSPBufferCount As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mDSPBufferLength As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mInstance As FMODAudioProfiler
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mListeners() As FMODAudioProfilerListener
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mMemoryUsage As FMODStructures.FMOD_MEMORY_USAGE
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -217,11 +245,23 @@ Implements IAudioProfiler
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mSystem As FMODSystem
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mTimingData As Dictionary
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mTotalChannels As Integer
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mTotalCPUUsage As Double
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mUpdateTimer As Timer
 	#tag EndProperty
 
 

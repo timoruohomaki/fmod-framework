@@ -1,12 +1,14 @@
 #tag Class
 Protected Class FMODSystem
-	#tag Method, Flags = &h21
-		Private Sub Constructor()
+	#tag Method, Flags = &h0
+		Sub Constructor()
 		  mSystemPtr = Nil
 		  mInitialized = False
 		  
-		  // Create the logger
 		  mLogger = New FMODLogger
+		  
+		  
+		  
 		End Sub
 	#tag EndMethod
 
@@ -26,14 +28,6 @@ Protected Class FMODSystem
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function GetDSPBufferSize(ByRef bufferLength As Integer, ByRef bufferCount As Integer) As Integer
-		  Declare Function FMOD_System_GetDSPBufferSize Lib FMODConstants.FMODLib(systemPtr As Ptr, ByRef bufferlength As Integer, ByRef numbuffers As Integer) As Integer
-		  
-		  Return FMOD_System_GetDSPBufferSize(mSystemPtr, bufferLength, bufferCount)
-		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
 		Function GetSystemPtr() As Ptr
 		  Return mSystemPtr
 		End Function
@@ -47,43 +41,25 @@ Protected Class FMODSystem
 		  End If
 		  
 		  Try
-		    // Create the FMOD system
-		    Dim result As Integer
-		    result = FMOD_System_Create(mSystemPtr)
+		    // Get the library manager instance first
+		    var libManager As FMODLibraryManager = FMODLibraryManager.Instance
 		    
-		    If result <> FMOD_RESULT.OK Then
+		    // Create the FMOD system using the library manager
+		    var result As Integer = libManager.CreateSystem(mSystemPtr)
+		    
+		    If result <> FMODStructures.FMOD_RESULT.OK Then
 		      LogError("Failed to create FMOD system: " + ResultToString(result))
 		      Return False
 		    End If
 		    
-		    // Get FMOD version
-		    Dim version As UInt32
-		    result = FMOD_System_GetVersion(mSystemPtr, version)
-		    
-		    If result <> FMOD_RESULT.OK Then
-		      LogError("Failed to get FMOD version: " + ResultToString(result))
-		      FMOD_System_Release(mSystemPtr)
-		      mSystemPtr = Nil
-		      Return False
-		    End If
-		    
-		    // Check version compatibility
-		    Dim expectedVersion As UInt32 = FMOD_VERSION
-		    If version < expectedVersion Then
-		      LogError("FMOD version mismatch. Expected: " + ExpectedVersionToString(expectedVersion) + _
-		      ", Found: " + VersionToString(version))
-		      FMOD_System_Release(mSystemPtr)
-		      mSystemPtr = Nil
-		      Return False
-		    End If
-		    
 		    // Initialize the system
-		    // Default settings: 32 channels, FMOD_INIT_NORMAL flags
-		    result = FMOD_System_Init(mSystemPtr, 32, FMOD_INIT.NORMAL, Nil)
+		    // Default settings: 32 channels, FMOD_INIT.NORMAL flags
+		    result = libManager.InitSystem(mSystemPtr, 32, FMODStructures.FMOD_INIT.NORMAL)
 		    
-		    If result <> FMOD_RESULT.OK Then
+		    If result <> FMODStructures.FMOD_RESULT.OK Then
 		      LogError("Failed to initialize FMOD system: " + ResultToString(result))
-		      FMOD_System_Release(mSystemPtr)
+		      // Clean up on error
+		      libManager.ReleaseSystem(mSystemPtr)
 		      mSystemPtr = Nil
 		      Return False
 		    End If
@@ -96,7 +72,8 @@ Protected Class FMODSystem
 		    
 		    // Clean up on error
 		    If mSystemPtr <> Nil Then
-		      FMOD_System_Release(mSystemPtr)
+		      var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		      libManager.ReleaseSystem(mSystemPtr)
 		      mSystemPtr = Nil
 		    End If
 		    
@@ -106,8 +83,8 @@ Protected Class FMODSystem
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h21
-		Private Shared Function Instance() As FMODSystem
+	#tag Method, Flags = &h0
+		Function Instance() As FMODSystem
 		  If mInstance = Nil Then
 		    mInstance = New FMODSystem
 		  End If
@@ -250,7 +227,7 @@ Protected Class FMODSystem
 		  Dim result As Integer
 		  result = FMOD_System_SetNumChannels(mSystemPtr, numChannels)
 		  
-		  If result <> FMOD_RESULT.OK Then
+		  If result <> FMOD_OK Then
 		    LogError("Failed to set number of channels: " + ResultToString(result))
 		    Return False
 		  End If
@@ -268,7 +245,7 @@ Protected Class FMODSystem
 		  Dim result As Integer
 		  result = FMOD_System_SetSoftwareFormat(mSystemPtr, sampleRate, speakerMode, 0)
 		  
-		  If result <> FMOD_RESULT.OK Then
+		  If result <> FMOD_OK Then
 		    LogError("Failed to set software format: " + ResultToString(result))
 		    Return False
 		  End If
@@ -288,7 +265,7 @@ Protected Class FMODSystem
 		    Dim result As Integer
 		    result = FMOD_System_Release(mSystemPtr)
 		    
-		    If result <> FMOD_RESULT.OK Then
+		    If result <> FMOD_OK Then
 		      LogError("Warning: Failed to release FMOD system: " + ResultToString(result))
 		    End If
 		    
@@ -308,10 +285,9 @@ Protected Class FMODSystem
 		    Return False
 		  End If
 		  
-		  Dim result As Integer
-		  result = FMOD_System_Update(mSystemPtr)
+		  var result As Integer = FMODLibraryManager.Instance.UpdateSystem(mSystemPtr)
 		  
-		  If result <> FMOD_RESULT.OK Then
+		  If result <> FMODStructures.FMOD_RESULT_OK  Then
 		    LogError("Failed to update FMOD system: " + ResultToString(result))
 		    Return False
 		  End If
@@ -339,8 +315,8 @@ Protected Class FMODSystem
 		Private mInstance As FMODSystem
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mLogger As FMODLogger
+	#tag Property, Flags = &h0
+		mLogger As FMODLogger
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

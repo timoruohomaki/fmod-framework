@@ -12,7 +12,7 @@ Protected Class FMODSound
 		    result = FMOD_System_CreateSound(FMODSystem.Instance.SystemPtr, filePath, _
 		    FMOD_MODE.DEFAULT, Nil, SoundPtr)
 		    
-		    If result <> FMOD_RESULT.OK Then
+		    If result <> FMOD_OK Then
 		      Raise New FMODException("Failed to create sound: " + _
 		      FMODSystem.ResultToString(result))
 		    End If
@@ -45,7 +45,7 @@ Protected Class FMODSound
 		    
 		    Dim result As Integer = FMOD_Sound_SetMode(SoundPtr, mode)
 		    
-		    If result <> FMOD_RESULT.OK Then
+		    If result <> FMOD_OK Then
 		      FMODSystem.Instance.LogError("Failed to set loop mode: " + _
 		      FMODSystem.ResultToString(result))
 		    End If
@@ -74,7 +74,7 @@ Protected Class FMODSound
 		  
 		  result = FMOD_Sound_GetLength(SoundPtr, length, FMOD_TIMEUNIT.MS)
 		  
-		  If result <> FMOD_RESULT.OK Then
+		  If result <> FMOD_OK Then
 		    FMODSystem.Instance.LogError("Failed to get sound length: " + _
 		    FMODSystem.ResultToString(result))
 		    Return 0
@@ -96,7 +96,7 @@ Protected Class FMODSound
 		    result = FMOD_System_PlaySound(FMODSystem.Instance.SystemPtr, SoundPtr, _
 		    Nil, paused, channelPtr)
 		    
-		    If result <> FMOD_RESULT.OK Then
+		    If result <> FMOD_OK Then
 		      FMODSystem.Instance.LogError("Failed to play sound: " + _
 		      FMODSystem.ResultToString(result))
 		      Return Nil
@@ -120,7 +120,7 @@ Protected Class FMODSound
 		  result = FMOD_Sound_SetLoopPoints(SoundPtr, loopStart, FMOD_TIMEUNIT.PCM, _
 		  loopEnd, FMOD_TIMEUNIT.PCM)
 		  
-		  If result <> FMOD_RESULT.OK Then
+		  If result <> FMOD_OK Then
 		    FMODSystem.Instance.LogError("Failed to set loop points: " + _
 		    FMODSystem.ResultToString(result))
 		  End If

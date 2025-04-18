@@ -1,5 +1,5 @@
 #tag DesktopWindow
-Begin DesktopWindow Window1 Implements IAudioProfiler
+Begin DesktopWindow Window1
    Backdrop        =   0
    BackgroundColor =   &cFFFFFF
    Composite       =   False
@@ -11,7 +11,7 @@ Begin DesktopWindow Window1 Implements IAudioProfiler
    HasMaximizeButton=   True
    HasMinimizeButton=   True
    HasTitleBar     =   True
-   Height          =   400
+   Height          =   180
    ImplicitInstance=   True
    MacProcID       =   0
    MaximumHeight   =   32000
@@ -24,7 +24,7 @@ Begin DesktopWindow Window1 Implements IAudioProfiler
    Title           =   "FMOD Test Framework"
    Type            =   0
    Visible         =   True
-   Width           =   600
+   Width           =   596
    Begin DesktopButton Button1
       AllowAutoDeactivate=   True
       Bold            =   False
@@ -38,7 +38,7 @@ Begin DesktopWindow Window1 Implements IAudioProfiler
       Height          =   22
       Index           =   -2147483648
       Italic          =   False
-      Left            =   193
+      Left            =   60
       LockBottom      =   False
       LockedInPosition=   False
       LockLeft        =   True
@@ -50,7 +50,7 @@ Begin DesktopWindow Window1 Implements IAudioProfiler
       TabPanelIndex   =   0
       TabStop         =   True
       Tooltip         =   ""
-      Top             =   155
+      Top             =   135
       Transparent     =   False
       Underline       =   False
       Visible         =   True
@@ -69,7 +69,7 @@ Begin DesktopWindow Window1 Implements IAudioProfiler
       Height          =   22
       Index           =   -2147483648
       Italic          =   False
-      Left            =   307
+      Left            =   152
       LockBottom      =   False
       LockedInPosition=   False
       LockLeft        =   True
@@ -81,7 +81,7 @@ Begin DesktopWindow Window1 Implements IAudioProfiler
       TabPanelIndex   =   0
       TabStop         =   True
       Tooltip         =   ""
-      Top             =   155
+      Top             =   135
       Transparent     =   False
       Underline       =   False
       Visible         =   True
@@ -95,38 +95,226 @@ Begin DesktopWindow Window1 Implements IAudioProfiler
       Scope           =   0
       TabPanelIndex   =   0
    End
+   Begin DesktopBevelButton BevelButton1
+      AllowAutoDeactivate=   True
+      AllowFocus      =   True
+      AllowTabStop    =   True
+      BackgroundColor =   &c00000000
+      BevelStyle      =   1
+      Bold            =   False
+      ButtonStyle     =   0
+      Caption         =   "DSP Tone 1 kHz"
+      CaptionAlignment=   3
+      CaptionDelta    =   0
+      CaptionPosition =   1
+      Enabled         =   True
+      FontName        =   "Consolas"
+      FontSize        =   0.0
+      FontUnit        =   0
+      HasBackgroundColor=   False
+      Height          =   77
+      Icon            =   0
+      IconAlignment   =   0
+      IconDeltaX      =   0
+      IconDeltaY      =   0
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   False
+      Left            =   20
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      MenuStyle       =   0
+      Scope           =   0
+      TabIndex        =   2
+      TabPanelIndex   =   0
+      TextColor       =   &c00000000
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Value           =   False
+      Visible         =   True
+      Width           =   120
+   End
+   Begin DesktopBevelButton BevelButton2
+      AllowAutoDeactivate=   True
+      AllowFocus      =   True
+      AllowTabStop    =   True
+      BackgroundColor =   &c00000000
+      BevelStyle      =   1
+      Bold            =   False
+      ButtonStyle     =   0
+      Caption         =   "Audio File"
+      CaptionAlignment=   3
+      CaptionDelta    =   0
+      CaptionPosition =   1
+      Enabled         =   True
+      FontName        =   "Consolas"
+      FontSize        =   0.0
+      FontUnit        =   0
+      HasBackgroundColor=   False
+      Height          =   77
+      Icon            =   0
+      IconAlignment   =   0
+      IconDeltaX      =   0
+      IconDeltaY      =   0
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Italic          =   False
+      Left            =   152
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      MenuStyle       =   0
+      Scope           =   0
+      TabIndex        =   3
+      TabPanelIndex   =   0
+      TextColor       =   &c00000000
+      Tooltip         =   ""
+      Top             =   20
+      Transparent     =   False
+      Underline       =   False
+      Value           =   False
+      Visible         =   True
+      Width           =   120
+   End
+   Begin DesktopGaugeControl vuLeft
+      AccessibilityLabel=   ""
+      AutoDeactivate  =   True
+      BorderColor     =   &c55575300
+      Clickable       =   False
+      DMBorderColor   =   &c55575300
+      DMDownColor     =   &c1F24260C
+      DMGaugeColor    =   &c2F34360C
+      DMHighLimitColor=   &cC6C6C600
+      DMLargeTickColor=   &cFFFFFF00
+      DMLowLimitColor =   &c3C3C3C0C
+      DMMediumLimitColor=   &c75757500
+      DMNeedleColor   =   &cED6F2D00
+      DMSmallTickColor=   &cF0F0F000
+      DMTextColor     =   &cFFFFFF00
+      DoubleBuffer    =   False
+      DownColor       =   &c1F24260C
+      Enabled         =   True
+      FormatValue     =   "{value}"
+      FormatValueMask =   "##"
+      GaugeColor      =   &c2F34360C
+      Height          =   140
+      HighLimit       =   80.0
+      HighLimitColor  =   &cC6C6C600
+      HighValueLabel  =   ""
+      Icon            =   0
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Large           =   False
+      LargeTickColor  =   &cFFFFFF00
+      LargeTickCount  =   5
+      Left            =   284
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      LowLimit        =   30.0
+      LowLimitColor   =   &c3C3C3C0C
+      LowValueLabel   =   ""
+      MaxValue        =   100.0
+      MediumLimitColor=   &c75757500
+      MinValue        =   0.0
+      NeedleColor     =   &cED6F2D00
+      Scope           =   0
+      ShowLargeTicks  =   True
+      ShowLimitBar    =   True
+      ShowSmallTicks  =   True
+      SmallTickColor  =   &cF0F0F000
+      SmallTickCount  =   3
+      TabIndex        =   4
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextColor       =   &cFFFFFF00
+      Tooltip         =   ""
+      Top             =   20
+      Value           =   0.0
+      Visible         =   True
+      Width           =   140
+   End
+   Begin DesktopGaugeControl vuRight
+      AccessibilityLabel=   ""
+      AutoDeactivate  =   True
+      BorderColor     =   &c55575300
+      Clickable       =   False
+      DMBorderColor   =   &c55575300
+      DMDownColor     =   &c1F24260C
+      DMGaugeColor    =   &c2F34360C
+      DMHighLimitColor=   &cC6C6C600
+      DMLargeTickColor=   &cFFFFFF00
+      DMLowLimitColor =   &c3C3C3C0C
+      DMMediumLimitColor=   &c75757500
+      DMNeedleColor   =   &cED6F2D00
+      DMSmallTickColor=   &cF0F0F000
+      DMTextColor     =   &cFFFFFF00
+      DoubleBuffer    =   False
+      DownColor       =   &c1F24260C
+      Enabled         =   True
+      FormatValue     =   "{value}"
+      FormatValueMask =   "##"
+      GaugeColor      =   &c2F34360C
+      Height          =   140
+      HighLimit       =   80.0
+      HighLimitColor  =   &cC6C6C600
+      HighValueLabel  =   ""
+      Icon            =   0
+      Index           =   -2147483648
+      InitialParent   =   ""
+      Large           =   False
+      LargeTickColor  =   &cFFFFFF00
+      LargeTickCount  =   5
+      Left            =   436
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      LowLimit        =   30.0
+      LowLimitColor   =   &c3C3C3C0C
+      LowValueLabel   =   ""
+      MaxValue        =   100.0
+      MediumLimitColor=   &c75757500
+      MinValue        =   0.0
+      NeedleColor     =   &cED6F2D00
+      Scope           =   0
+      ShowLargeTicks  =   True
+      ShowLimitBar    =   True
+      ShowSmallTicks  =   True
+      SmallTickColor  =   &cF0F0F000
+      SmallTickCount  =   3
+      TabIndex        =   5
+      TabPanelIndex   =   0
+      TabStop         =   True
+      TextColor       =   &cFFFFFF00
+      Tooltip         =   ""
+      Top             =   20
+      Value           =   0.0
+      Visible         =   True
+      Width           =   140
+   End
 End
 #tag EndDesktopWindow
 
 #tag WindowCode
 	#tag Event
 		Sub Closing()
-		  // Stop the timer
-		  If fmodTimer <> Nil Then
-		    fmodTimer.Enabled = False
-		  End If
 		  
-		  // Clean up FMOD resources
-		  If toneGenerator <> Nil Then
-		    toneGenerator.Cleanup()
-		    toneGenerator = Nil
-		  End If
 		End Sub
 	#tag EndEvent
 
 	#tag Event
 		Sub Opening()
-		  toneGenerator = New FMODToneGeneratorDSP
-		  
-		  Try
-		    
-		    toneGenerator.Initialize()
-		    
-		  Catch ex as RuntimeException
-		    
-		    MessageBox("Error initializing FMOD: " + ex.Message)
-		    
-		  End Try
 		  
 		End Sub
 	#tag EndEvent
@@ -217,57 +405,27 @@ End
 		Private previousEx As String
 	#tag EndProperty
 
-	#tag Property, Flags = &h0
-		toneGenerator As FMODToneGeneratorDSP
-	#tag EndProperty
-
 
 #tag EndWindowCode
 
 #tag Events Button1
 	#tag Event
 		Sub Pressed()
-		  // Play a sine wave tone at 440Hz with 50% volume
-		  Try
-		    toneGenerator.PlayTone(FMODApi.OSCILLATOR_SINE, 0.5)
-		    toneGenerator.SetFrequency(440.0)
-		  Catch ex As RuntimeException
-		    System.Log(System.LogLevelError, "Error playing tone: " + ex.Message)
-		  End Try
+		  
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events Button2
 	#tag Event
 		Sub Pressed()
-		  Try
-		    toneGenerator.StopTone()
-		  Catch ex As RuntimeException
-		    MessageBox("Error stopping tone: " + ex.Message)
-		  End Try
+		  
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events fmodTimer
 	#tag Event
 		Sub Action()
-		  If toneGenerator <> Nil Then
-		    
-		    var d as DateTime = DateTime.Now
-		    
-		    self.Title = d.Second.ToString
-		    
-		    Try
-		      toneGenerator.Update()
-		    Catch ex As RuntimeException
-		      if ex.Message <> previousEx then
-		        System.Log(System.LogLevelError, "Error in update timer: " + ex.Message)
-		        
-		        previousEx = ex.Message
-		      end
-		      // Handle any errors
-		    End Try
-		  End If
+		  
 		End Sub
 	#tag EndEvent
 #tag EndEvents
