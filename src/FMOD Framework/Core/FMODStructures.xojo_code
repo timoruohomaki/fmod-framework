@@ -261,6 +261,9 @@ Protected Class FMODStructures
 	#tag Constant, Name = FMOD_RESULT_OK, Type = Double, Dynamic = False, Default = \"0", Scope = Public
 	#tag EndConstant
 
+	#tag Constant, Name = FMOD_VERSION, Type = Double, Dynamic = False, Default = \"&h00020206", Scope = Public
+	#tag EndConstant
+
 
 	#tag Structure, Name = FMOD_CPU_USAGE, Flags = &h0
 		dsp As Single

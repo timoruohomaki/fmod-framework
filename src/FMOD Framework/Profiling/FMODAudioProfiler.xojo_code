@@ -2,73 +2,115 @@
 Protected Class FMODAudioProfiler
 Implements IAudioProfiler
 	#tag Method, Flags = &h0
-		Sub Constructor()
-		  mMetricsData = New Dictionary
-		  mTimingData = New Dictionary
-		  mStartTimes = New Dictionary
-		  mCPUReadings = 0
-		  mTotalCPUUsage = 0
-		  mPeakMemoryUsage = 0
-		End Sub
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub EndTiming(operationName As String)
-		  // Part of the IAudioProfiler interface.
-		  
-		  If mStartTimes.HasKey(operationName) Then
-		    var startTime As UInt64 = mStartTimes.Value(operationName)
-		    var endTime As UInt64 = System.Microseconds
-		    var duration As UInt64 = endTime - startTime
-		    
-		    var key As String = "timing_" + operationName
-		    
-		    // Store running average for timing operations
-		    If mTimingData.HasKey(key) Then
-		      var dataDict As Dictionary = mTimingData.Value(key)
-		      var count As Integer = dataDict.Value("count")
-		      var total As UInt64 = dataDict.Value("total")
-		      var max As UInt64 = dataDict.Value("max")
-		      
-		      dataDict.Value("count") = count + 1
-		      dataDict.Value("total") = total + duration
-		      dataDict.Value("avg") = (total + duration) / (count + 1)
-		      
-		      If duration > max Then
-		        dataDict.Value("max") = duration
-		      End If
-		    Else
-		      var dataDict As New Dictionary
-		      dataDict.Value("count") = 1
-		      dataDict.Value("total") = duration
-		      dataDict.Value("avg") = duration
-		      dataDict.Value("max") = duration
-		      
-		      mTimingData.Value(key) = dataDict
+		Sub AddListener(listener as FMODAudioProfilerListener)
+		  // Check if the listener is already in the array
+		  For i As Integer = 0 To mListeners.Ubound
+		    If mListeners(i) = listener Then
+		      Return
 		    End If
-		    
-		    // Remove the start time
-		    mStartTimes.Remove(operationName)
-		  End If
+		  Next
 		  
+		  // Add the listener
+		  mListeners.Append(listener)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub Constructor()
+		  // Get the FMOD system instance
+		  mSystem = FMODSystem.Instance
 		  
+		  // Get the library manager instance
+		  mLibraryManager = FMODLibraryManager.Instance
+		  
+		  // Initialize the timer
+		  mUpdateTimer = New Timer
+		  mUpdateTimer.Period = mCollectionInterval
+		  AddHandler mUpdateTimer.Action, WeakAddressOf UpdateTimerAction
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function FMOD_System_GetDSPBufferSize(systemPtr As Ptr, ByRef bufferlength As Integer, ByRef numbuffers As Integer) As Integer
-		  Declare Function FMOD_System_GetDSPBufferSize Lib FMODLib(systemPtr As Ptr, ByRef bufferlength As Integer, ByRef numbuffers As Integer) As Integer
+		Sub Destructor()
+		  // Stop the timer if it's running
+		  mUpdateTimer.Mode = Timer.ModeOff
 		  
-		  Return bufferlength
+		  // Remove event handler
+		  RemoveHandler mUpdateTimer.Action, WeakAddressOf UpdateTimerAction
+		  
+		  // Clear listeners
+		  mListeners.ResizeTo(-1)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function FormatCPUUsage() As String
+		  var result As String = "CPU Usage:" + EndOfLine
+		  result = result + "  DSP: " + Format(mCPUUsage.dsp * 100, "#,##0.00").Replace(".", ",") + "%" + EndOfLine
+		  result = result + "  Stream: " + Format(mCPUUsage.stream * 100, "#,##0.00").Replace(".", ",") + "%" + EndOfLine
+		  result = result + "  Geometry: " + Format(mCPUUsage.geometry * 100, "#,##0.00").Replace(".", ",") + "%" + EndOfLine
+		  result = result + "  Update: " + Format(mCPUUsage.update * 100, "#,##0.00").Replace(".", ",") + "%" + EndOfLine
+		  result = result + "  Total: " + Format(mCPUUsage.total * 100, "#,##0.00").Replace(".", ",") + "%"
+		  
+		  Return result
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function GetAverageCPUUsage() As Double
-		  // Part of the IAudioProfiler interface.
+		Function FormatMemoryUsage() As String
+		  var result As String = "Memory Usage:" + EndOfLine
 		  
-		  If mCPUReadings > 0 Then
-		    Return mTotalCPUUsage / mCPUReadings
+		  // Convert bytes to more readable format
+		  var currentAllocMB As Double = mMemoryUsage.currentallocated / (1024 * 1024)
+		  var maxAllocMB As Double = mMemoryUsage.maxallocated / (1024 * 1024)
+		  
+		  result = result + "  Current: " + Format(currentAllocMB, "#,##0.00").Replace(".", ",") + " MB" + EndOfLine
+		  result = result + "  Maximum: " + Format(maxAllocMB, "#,##0.00").Replace(".", ",") + " MB"
+		  
+		  Return result
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetChannelsPlaying() As Integer
+		     Return mChannelsPlaying
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetCollectionInterval() As Interval
+		     Return mCollectionInterval
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetCPUUsage() As FMODStrctures.FMOD_CPU_USAGE
+		  Return mCPUUsage
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetDSPBufferCount() As Integer
+		      Return mDSPBufferCount
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetDSPBufferLength() As Integer
+		  Return mDSPBufferLength
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetMemoryUsage() As FMODStructures.FMOD_MEMORY_USAGE
+		    Return mMemoryUsage
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetMeteringChannelCount() As Integer
+		  If mMeteringEnabled Then
+		    Return mMeteringInfo.numchannels
 		  Else
 		    Return 0
 		  End If
@@ -76,192 +118,379 @@ Implements IAudioProfiler
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function GetPeakMemoryUsage() As UInt64
-		  // Part of the IAudioProfiler interface.
-		  
-		  Return mPeakMemoryUsage
+		Function GetMeteringInfo() As FMODStructures.FMOD_DSP_METERING_INFO
+		     Return mMeteringInfo
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function GetProfileData() As Dictionary
-		  // Part of the IAudioProfiler interface.
+		Function GetPeakLevels() As Single()
+		  var result() As Single
 		  
-		  var result As New Dictionary
-		  
-		  // Copy all metrics data
-		  For Each key As Variant In mMetricsData.Keys
-		    result.Value(key) = mMetricsData.Value(key)
-		  Next
-		  
-		  // Add timing data
-		  result.Value("timing_data") = mTimingData.Clone
-		  
-		  // Add summary metrics
-		  result.Value("avg_cpu_usage") = GetAverageCPUUsage()
-		  result.Value("peak_memory") = mPeakMemoryUsage
+		  If mMeteringEnabled Then
+		    result.ResizeTo(mMeteringInfo.numchannels - 1)
+		    
+		    For i As Integer = 0 To mMeteringInfo.numchannels - 1
+		      result(i) = mMeteringInfo.peaklevel(i)
+		    Next
+		  End If
 		  
 		  Return result
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub RecordBufferStats(bufferSize As UInt32, bufferUsage As Double)
-		  // Part of the IAudioProfiler interface.
+		Function GetRMSLevels() As Single()
+		  var result() As Single
 		  
-		  mMetricsData.Value("buffer_size") = bufferSize
-		  mMetricsData.Value("buffer_usage_percent") = bufferUsage
+		  If mMeteringEnabled Then
+		    result.ResizeTo(mMeteringInfo.numchannels - 1)
+		    
+		    For i As Integer = 0 To mMeteringInfo.numchannels - 1
+		      result(i) = mMeteringInfo.rmslevel(i)
+		    Next
+		  End If
 		  
-		End Sub
+		  Return result
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub RecordChannelUsage(activeChannels As UInt32, totalChannels As UInt32)
-		  // Part of the IAudioProfiler interface.
-		  
-		  mMetricsData.Value("active_channels") = activeChannels
-		  mMetricsData.Value("total_channels") = totalChannels
-		  mMetricsData.Value("channel_usage_percent") = (activeChannels / totalChannels) * 100
-		  
-		  
-		End Sub
+		Function GetTotalChannels() As Integer
+		      Return mTotalChannels
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub RecordCPUUsage(moduleIdentifier As String, usagePercentage As Double)
-		  // Part of the IAudioProfiler interface.
+		Function Initialize() As Boolean
+		  // Check if FMOD system is initialized
+		  If Not mSystem.IsInitialized Then
+		    Return False
+		  End If
 		  
-		  mTotalCPUUsage = mTotalCPUUsage + usagePercentage
-		  mCPUReadings = mCPUReadings + 1
-		  
-		  var key As String = "cpu_" + moduleIdentifier
-		  
-		  If mMetricsData.HasKey(key) Then
+		  Try
+		    // Get initial DSP buffer information
+		    UpdateDSPBufferInfo()
 		    
-		    var currentMax As Double = mMetricsData.Value(key)
-		    
-		    If usagePercentage > currentMax Then
-		      mMetricsData.Value(key) = usagePercentage
+		    // Initialize metering if requested
+		    If Not InitializeLevelMetering() Then
+		      System.DebugLog("Warning: Level metering could not be initialized")
+		      // Continue anyway, as metering is optional
 		    End If
 		    
-		  Else
-		    mMetricsData.Value(key) = usagePercentage
+		    // Start collecting data
+		    mUpdateTimer.Mode = Timer.ModeMultiple
+		    
+		    Return True
+		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Failed to initialize audio profiler: " + ex.Message)
+		    Return False
+		  End Try
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function InitializeLevelMetering() As Boolean
+		  If Not mSystem.IsInitialized Then
+		    Return False
 		  End If
 		  
-		  
-		End Sub
+		  Try
+		    // Get the master channel group
+		    var result As Integer = mLibraryManager.GetMasterChannelGroup(mSystem.SystemPtr, mMasterChannelGroup)
+		    
+		    If result <> FMODStructures.FMOD_RESULT.OK Then
+		      System.DebugLog("Failed to get master channel group: " + FMODSystem.ResultToString(result))
+		      Return False
+		    End If
+		    
+		    // Get the head DSP from the master channel group
+		    result = mLibraryManager.ChannelGroup_GetDSP(mMasterChannelGroup, FMODStructures.FMOD_CHANNELCONTROL_DSP_INDEX.HEAD, mMasterDSP)
+		    
+		    If result <> FMODStructures.FMOD_RESULT.OK Then
+		      System.DebugLog("Failed to get master DSP: " + FMODSystem.ResultToString(result))
+		      Return False
+		    End If
+		    
+		    // Enable metering on the master DSP
+		    result = mLibraryManager.DSP_SetMeteringEnabled(mMasterDSP, True, True)
+		    
+		    If result <> FMODStructures.FMOD_RESULT.OK Then
+		      System.DebugLog("Failed to enable metering: " + FMODSystem.ResultToString(result))
+		      Return False
+		    End If
+		    
+		    mMeteringEnabled = True
+		    Return True
+		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error initializing level metering: " + ex.Message)
+		    mMeteringEnabled = False
+		    Return False
+		  End Try
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub RecordDSPUsage(dspName As String, usagePercentage As Double)
-		  // Part of the IAudioProfiler interface.
-		  
-		  var key As String = "dsp_" + dspName
-		  
-		  mMetricsData.Value(key) = usagePercentage
-		  
-		  
-		End Sub
+		Function IsMeteringEnabled() As Boolean
+		     Return mMeteringEnabled
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub RecordMemoryUsage(moduleIdentifier As String, bytesUsed As UInt64)
-		  // Part of the IAudioProfiler interface.
-		  
-		  If bytesUsed > mPeakMemoryUsage Then
-		    mPeakMemoryUsage = bytesUsed
+		Shared Function LevelToDecibels(level as Single) As Single
+		  // Avoid log(0)
+		  If level <= 0.0000001 Then
+		    Return -80.0 // -80 dB floor
 		  End If
 		  
-		  var key As String = "mem_" + moduleIdentifier
+		  // Convert linear level to dB: dB = 20 * log10(level)
+		  Return 20.0 * Log10(level)
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub NotifyListeners()
+		  // Get level data if metering is enabled
+		  var peakLevels() As Single
+		  var rmsLevels() As Single
+		  var numChannels As Integer = 0
 		  
-		  mMetricsData.Value(key) = bytesUsed
+		  If mMeteringEnabled Then
+		    peakLevels = GetPeakLevels()
+		    rmsLevels = GetRMSLevels()
+		    numChannels = GetMeteringChannelCount()
+		  End If
+		  
+		  // Notify all registered listeners
+		  For Each listener As FMODAudioProfilerListener In mListeners
+		    If listener <> Nil Then
+		      // General update for all listeners
+		      listener.OnProfilerUpdate(Self)
+		      
+		      // Level meter update for specialized listeners
+		      If mMeteringEnabled And listener IsA FMODAudioLevelMeterListener Then
+		        var levelListener As FMODAudioLevelMeterListener = FMODAudioLevelMeterListener(listener)
+		        levelListener.OnLevelUpdate(peakLevels, rmsLevels, numChannels)
+		      End If
+		    End If
+		  Next
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub Reset()
-		  mMetricsData.Clear
-		  mTimingData.Clear
-		  mStartTimes.Clear
-		  mCPUReadings = 0
-		  mTotalCPUUsage = 0
-		  mPeakMemoryUsage = 0
+		Sub RemoveListener(listener As FMODAudioProfilerListener)
+		  For i As Integer = 0 To mListeners.Ubound
+		    If mListeners(i) = listener Then
+		      mListeners.Remove(i)
+		      Return
+		    End If
+		  Next
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub StartTiming(operationName As String)
-		  // Part of the IAudioProfiler interface.
-		  
-		  mStartTimes.Value(operationName) = System.Microseconds
-		  
+		Sub SetCollectionInterval(intervalMS As Integer)
+		  // Ensure the interval is reasonable (minimum 100ms, maximum 10000ms)
+		  mCollectionInterval = Max(100, Min(10000, intervalMS))
+		  mUpdateTimer.Period = mCollectionInterval
 		  
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub Shutdown()
+		  // Stop the timer
+		  mUpdateTimer.Mode = Timer.ModeOff
+		  
+		  // Disable metering if it was enabled
+		  If mMeteringEnabled And mMasterDSP <> Nil Then
+		    var result As Integer = mLibraryManager.DSP_SetMeteringEnabled(mMasterDSP, False, False)
+		    
+		    If result <> FMODStructures.FMOD_RESULT.OK Then
+		      System.DebugLog("Failed to disable metering: " + FMODSystem.ResultToString(result))
+		    End If
+		    
+		    mMeteringEnabled = False
+		    mMasterDSP = Nil
+		    mMasterChannelGroup = Nil
+		  End If
+		End Sub
+	#tag EndMethod
 
-	#tag Property, Flags = &h21
-		Private mChannelsPlaying As Integer
+	#tag Method, Flags = &h1
+		Protected Sub UpdateChannelCounts()
+		  If Not mSystem.IsInitialized Then
+		    Return
+		  End If
+		  
+		  var result As Integer = mLibraryManager.GetChannelsPlaying(mSystem.SystemPtr, mChannelsPlaying, mTotalChannels)
+		  
+		  If result <> FMODStructures.FMOD_RESULT.OK Then
+		    System.DebugLog("Failed to get channel counts: " + FMODSystem.ResultToString(result))
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub UpdateCPUUsage()
+		  If Not mSystem.IsInitialized Then
+		    Return
+		  End If
+		  
+		  var result As Integer = mLibraryManager.GetCPUUsage(mSystem.SystemPtr, mCPUUsage)
+		  
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to get CPU usage: " + FMODSystem.ResultToString(result))
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub UpdateDSPBufferInfo()
+		  If Not mSystem.IsInitialized Then
+		    Return
+		  End If
+		  
+		  var result As Integer = mLibraryManager.GetDSPBufferSize(mSystem.SystemPtr, mDSPBufferLength, mDSPBufferCount)
+		  
+		  If result <> FMODStructures.FMOD_RESULT.OK Then
+		    System.DebugLog("Failed to get DSP buffer size: " + FMODSystem.ResultToString(result))
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub UpdateLevelMetering()
+		  If Not mSystem.IsInitialized Or Not mMeteringEnabled Or mMasterDSP = Nil Then
+		    Return
+		  End If
+		  
+		  var result As Integer = mLibraryManager.DSP_GetMeteringInfo(mMasterDSP, mMeteringInfo)
+		  
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to get metering info: " + FMODSystem.ResultToString(result))
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub UpdateMemoryUsage()
+		  If Not mSystem.IsInitialized Then
+		    Return
+		  End If
+		  
+		  var result As Integer = mLibraryManager.GetMemoryInfo(mSystem.SystemPtr, mMemoryUsage)
+		  
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to get memory usage: " + FMODSystem.ResultToString(result))
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Sub UpdateTimerAction(sender as Timer)
+		  If Not mSystem.IsInitialized Then
+		    Return
+		  End If
+		  
+		  Try
+		    // Update all profiler data
+		    UpdateCPUUsage()
+		    UpdateMemoryUsage()
+		    UpdateChannelCounts()
+		    
+		    // Update level metering if enabled
+		    If mMeteringEnabled Then
+		      UpdateLevelMetering()
+		    End If
+		    
+		    // Notify listeners
+		    NotifyListeners()
+		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error updating profiler data: " + ex.Message)
+		  End Try
+		End Sub
+	#tag EndMethod
+
+
+	#tag ComputedProperty, Flags = &h0
+		#tag Getter
+			Get
+			  If mInstance Is Nil Then
+			    mInstance = New FMODAudioProfiler
+			  End If
+			  
+			  Return mInstance
+			End Get
+		#tag EndGetter
+		Instance() As FMODAudioProfiler
+	#tag EndComputedProperty
+
+	#tag Property, Flags = &h1
+		Protected mChannelsPlaying As Integer
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mCPUReadings As Integer
+	#tag Property, Flags = &h1
+		Protected mCollectionInterval As Integer = 1000
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mCPUUsage As FMODStructures.FMOD_CPU_USAGE
+	#tag Property, Flags = &h1
+		Protected mCPUUsage As FMODStructures.FMOD_CPU_USAGE
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mDSPBufferCount As Integer
+	#tag Property, Flags = &h1
+		Protected mDSPBufferCount As Integer
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mDSPBufferLength As Integer
+	#tag Property, Flags = &h1
+		Protected mDSPBufferLength As Integer
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mInstance As FMODAudioProfiler
+	#tag Property, Flags = &h1
+		Protected mInstance As FMODAudioProfiler
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mListeners() As FMODAudioProfilerListener
+	#tag Property, Flags = &h1
+		Protected mLibraryManager As FMODLibraryManager
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mMemoryUsage As FMODStructures.FMOD_MEMORY_USAGE
+	#tag Property, Flags = &h1
+		Protected mListeners() As FMODAudioProfilerListener
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mMetricsData As Dictionary
+	#tag Property, Flags = &h1
+		Protected mMasterChannelGroup As Ptr
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mPeakMemoryUsage As UInt64
+	#tag Property, Flags = &h1
+		Protected mMasterDSP As Ptr
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mStartTimes As Dictionary
+	#tag Property, Flags = &h1
+		Protected mMemoryUsage As FMODStructures.FMOD_MEMORY_USAGE
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mSystem As FMODSystem
+	#tag Property, Flags = &h1
+		Protected mMeteringEnabled As Boolean
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mTimingData As Dictionary
+	#tag Property, Flags = &h1
+		Protected mMeteringInfo As FMODStructures.FMOD_DSP_METERING_INFO
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mTotalChannels As Integer
+	#tag Property, Flags = &h1
+		Protected mSystem As FMODSystem
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mTotalCPUUsage As Double
+	#tag Property, Flags = &h1
+		Protected mTotalChannels As Integer
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mUpdateTimer As Timer
+	#tag Property, Flags = &h1
+		Protected mUpdateTimer As Timer
 	#tag EndProperty
 
 

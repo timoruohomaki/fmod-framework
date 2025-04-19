@@ -1,7 +1,7 @@
 #tag Class
 Protected Class FMODSound
-	#tag Method, Flags = &h1
-		Protected Sub Constructor()
+	#tag Method, Flags = &h0
+		Sub Constructor()
 		  If FMODSystem.Instance = Nil Or Not FMODSystem.Instance.IsInitialized Then
 		    Raise New FMODException("FMOD System not initialized")
 		  End If
@@ -17,38 +17,7 @@ Protected Class FMODSound
 		      FMODSystem.ResultToString(result))
 		    End If
 		  End If
-		  End Sub
 		  
-		  // Destructor to release the sound resource
-		  Sub Destructor()
-		    If SoundPtr <> Nil Then
-		      FMOD_Sound_Release(SoundPtr)
-		      SoundPtr = Nil
-		    End If
-		  End Sub
-		  
-		  // Getter for the sound pointer
-		  Function GetSoundPtr() As Ptr
-		    Return SoundPtr
-		  End Function
-		  
-		  // Method to set loop mode for the sound
-		  Sub SetLoopMode(loop As Boolean)
-		    If SoundPtr = Nil Then Return
-		    
-		    Dim mode As Integer
-		    If loop Then
-		      mode = FMOD_MODE.LOOP_NORMAL
-		    Else
-		      mode = FMOD_MODE.LOOP_OFF
-		    End If
-		    
-		    Dim result As Integer = FMOD_Sound_SetMode(SoundPtr, mode)
-		    
-		    If result <> FMOD_OK Then
-		      FMODSystem.Instance.LogError("Failed to set loop mode: " + _
-		      FMODSystem.ResultToString(result))
-		    End If
 		End Sub
 	#tag EndMethod
 
@@ -63,8 +32,17 @@ Protected Class FMODSound
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Function GetLengthMS() As Integer
+	#tag Method, Flags = &h0
+		Sub Destructor()
+		  If SoundPtr <> Nil Then
+		    FMOD_Sound_Release(SoundPtr)
+		    SoundPtr = Nil
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function GetLengthMS() As Integer
 		  // returns length in milliseconds
 		  
 		  If SoundPtr = Nil Then Return 0
@@ -84,8 +62,14 @@ Protected Class FMODSound
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Sub Play()
+	#tag Method, Flags = &h0
+		Function GetSoundPtr() As Ptr
+		  Return SoundPtr
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub Play()
 		  If SoundPtr = Nil Then Return Nil
 		  
 		  Try
@@ -112,8 +96,29 @@ Protected Class FMODSound
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Sub SetLoopPoints(loopStart As Integer, loopEnd As Integer)
+	#tag Method, Flags = &h0
+		Sub SetLoopMode(isLoop as Boolean)
+		  If SoundPtr = Nil Then Return
+		  
+		  var  mode As Integer
+		  
+		  If loop Then
+		    mode = FMOD_MODE.LOOP_NORMAL
+		  Else
+		    mode = FMOD_MODE.LOOP_OFF
+		  End If
+		  
+		  var result As Integer = FMOD_Sound_SetMode(SoundPtr, mode)
+		  
+		  If result <> FMOD_OK Then
+		    FMODSystem.Instance.LogError("Failed to set loop mode: " + _
+		    FMODSystem.ResultToString(result))
+		  End If
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub SetLoopPoints(loopStart As Integer, loopEnd As Integer)
 		  If SoundPtr = Nil Then Return
 		  
 		  Dim result As Integer

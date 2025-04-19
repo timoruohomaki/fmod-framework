@@ -1,7 +1,7 @@
 #tag Class
 Protected Class FMODLogger
-	#tag Method, Flags = &h21
-		Private Sub LogError(message as String)
+	#tag Method, Flags = &h0
+		Sub LogError(message as String)
 		  // In a real implementation, you might log to a file or database
 		  
 		  System.DebugLog("FMOD Error: " + message)

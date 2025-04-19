@@ -333,10 +333,6 @@ Protected Class FMODSystem
 	#tag EndComputedProperty
 
 
-	#tag Constant, Name = FMOD_VERSION, Type = Double, Dynamic = False, Default = \"&h00020206", Scope = Public
-	#tag EndConstant
-
-
 	#tag ViewBehavior
 		#tag ViewProperty
 			Name="Name"
