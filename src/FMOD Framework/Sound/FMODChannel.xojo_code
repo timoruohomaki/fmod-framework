@@ -1,14 +1,14 @@
 #tag Class
 Protected Class FMODChannel
 	#tag Method, Flags = &h0
-		Sub Constructor(cPtr as Ptr)
-		  ChannelPtr = cPtr
+		Sub Constructor(chPtr as Ptr)
+		  ChannelPtr = chPtr
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function GetChannelPtr() As Ptr
-		  Return ChannelPtr
+		  return ChannelPtr
 		End Function
 	#tag EndMethod
 
@@ -16,12 +16,13 @@ Protected Class FMODChannel
 		Function IsPlaying() As Boolean
 		  If Not IsValid Then Return False
 		  
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		  
 		  var isPlaying As Boolean
-		  var result As Integer
 		  
-		  result = FMOD_Channel_IsPlaying(ChannelPtr, isPlaying)
+		  var result As Integer = libManager.IsChannelPlaying(ChannelPtr, isPlaying)
 		  
-		  If result <> FMODStructures.FMOD_RESULT_OK  Then
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
 		    // Consider channel not playing if there's an error
 		    Return False
 		  End If
@@ -32,24 +33,24 @@ Protected Class FMODChannel
 
 	#tag Method, Flags = &h0
 		Function IsValid() As Boolean
-		  return ChannelPtr <> nil
+		  Return ChannelPtr <> Nil
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub SetFrequency(freq as Double)
+		Sub SetFrequency(f as Double)
 		  If Not IsValid Then Return
 		  
-		  var f as Double
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		  var frequency as Double
 		  
 		  // Ensure frequency is positive
-		  f = Max(0.1, freq)
+		  frequency = Max(0.1, f)
 		  
-		  Dim result As Integer
-		  result = FMOD_Channel_SetFrequency(ChannelPtr, f)
+		  var result As Integer = libManager.SetChannelFrequency(ChannelPtr, frequency)
 		  
-		  If result <> FMODStructures.FMOD_RESULT_OK  Then
-		    FMODSystem.Instance.LogError("Failed to set channel frequency: " + _
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to set channel frequency: " + _
 		    FMODSystem.ResultToString(result))
 		  End If
 		End Sub
@@ -59,29 +60,30 @@ Protected Class FMODChannel
 		Sub SetPan(pan as Double)
 		  If Not IsValid Then Return
 		  
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		  
 		  // Clamp pan between -1 (left) and 1 (right)
 		  pan = Max(-1.0, Min(1.0, pan))
 		  
-		  var result As Integer
-		  result = FMOD_Channel_SetPan(ChannelPtr, pan)
+		  var result As Integer = libManager.SetChannelPan(ChannelPtr, pan)
 		  
-		  If result <> FMODStructures.FMOD_RESULT_OK  Then
-		    FMODSystem.Instance.LogError("Failed to set channel pan: " + _
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to set channel pan: " + _
 		    FMODSystem.ResultToString(result))
 		  End If
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub SetPaused(paused as Boolean)
+		Sub SetPaused(Paused as Boolean)
 		  If Not IsValid Then Return
 		  
-		  var result As Integer
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
 		  
-		  result = FMOD_Channel_SetPaused(ChannelPtr, paused)
+		  var result As Integer = libManager.SetChannelPaused(ChannelPtr, paused)
 		  
-		  If result <> FMODStructures.FMOD_RESULT_OK  Then
-		    FMODSystem.Instance.LogError("Failed to set channel pause state: " + _
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to set channel pause state: " + _
 		    FMODSystem.ResultToString(result))
 		  End If
 		End Sub
@@ -91,14 +93,15 @@ Protected Class FMODChannel
 		Sub SetVolume(volume as Double)
 		  If Not IsValid Then Return
 		  
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		  
 		  // Clamp volume between 0 and 1
 		  volume = Max(0.0, Min(1.0, volume))
 		  
-		  var result As Integer
-		  result = FMOD_Channel_SetVolume(ChannelPtr, volume)
+		  var result As Integer = libManager.SetChannelVolume(ChannelPtr, volume)
 		  
-		  If result <> FMODStructures.FMOD_RESULT_OK  Then
-		    FMODSystem.Instance.LogError("Failed to set channel volume: " + _
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to set channel volume: " + _
 		    FMODSystem.ResultToString(result))
 		  End If
 		End Sub
@@ -108,11 +111,12 @@ Protected Class FMODChannel
 		Sub Stop()
 		  If Not IsValid Then Return
 		  
-		  var result As Integer
-		  result = FMOD_Channel_Stop(ChannelPtr)
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		  
+		  var result As Integer = libManager.StopChannel(ChannelPtr)
 		  
 		  If result <> FMODStructures.FMOD_RESULT_OK Then
-		    FMODSystem.Instance.LogError("Failed to stop channel: " + _
+		    System.DebugLog("Failed to stop channel: " + _
 		    FMODSystem.ResultToString(result))
 		  End If
 		  
@@ -165,14 +169,6 @@ Protected Class FMODChannel
 			Visible=true
 			Group="Position"
 			InitialValue="0"
-			Type="Integer"
-			EditorType=""
-		#tag EndViewProperty
-		#tag ViewProperty
-			Name="ChannelPtr"
-			Visible=false
-			Group="Behavior"
-			InitialValue=""
 			Type="Integer"
 			EditorType=""
 		#tag EndViewProperty

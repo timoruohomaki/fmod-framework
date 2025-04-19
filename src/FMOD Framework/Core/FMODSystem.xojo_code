@@ -111,7 +111,7 @@ Protected Class FMODSystem
 		Function ResultToString(result as Integer) As String
 		  Select Case result
 		    
-		  Case FMOD_OK
+		  Case FMOD_RESULT_OK
 		    Return "No errors"
 		  Case FMOD_ERR_BADCOMMAND
 		    Return "Bad command"

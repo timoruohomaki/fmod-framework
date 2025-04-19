@@ -46,6 +46,36 @@ Protected Class FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function CreateSound(systemPtr As Ptr, filePath As String, mode As Integer, exInfo As Ptr, ByRef sound As Ptr) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mCreateSound Is Nil Then
+		    var createSoundPtr As Ptr = mFMODLibrary.Symbol("FMOD_System_CreateSound")
+		    If createSoundPtr <> Nil Then
+		      mCreateSound = New DeclareFunctionMBS("(psip)i", createSoundPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append systemPtr
+		  params.Append filePath
+		  params.Append mode
+		  params.Append exInfo
+		  params.Append sound
+		  
+		  var result As Variant = mCreateSound.Invoke(params)
+		  
+		  // Extract the output sound pointer
+		  sound = params(4)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Function CreateSystem(ByRef systemPtr as Ptr) As Integer
 		  If Not IsLibraryLoaded() Then Return -1
 		  
@@ -202,6 +232,34 @@ Protected Class FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function GetSoundLength(sound As Ptr, ByRef length As UInt32, timeUnit As Integer) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mGetSoundLength Is Nil Then
+		    var getSoundLengthPtr As Ptr = mFMODLibrary.Symbol("FMOD_Sound_GetLength")
+		    If getSoundLengthPtr <> Nil Then
+		      mGetSoundLength = New DeclareFunctionMBS("(p@i)i", getSoundLengthPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append sound
+		  params.Append length
+		  params.Append timeUnit
+		  
+		  var result As Variant = mGetSoundLength.Invoke(params)
+		  
+		  // Extract the output length
+		  length = params(1)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub InitializeFunctions()
 		  
 		  // System Creation - FMOD_System_Create
@@ -289,6 +347,33 @@ Protected Class FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function IsChannelPlaying(channel As Ptr, ByRef isPlaying As Boolean) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mIsChannelPlaying Is Nil Then
+		    var isChannelPlayingPtr As Ptr = mFMODLibrary.Symbol("FMOD_Channel_IsPlaying")
+		    If isChannelPlayingPtr <> Nil Then
+		      mIsChannelPlaying = New DeclareFunctionMBS("(p@)i", isChannelPlayingPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append channel
+		  params.Append isPlaying
+		  
+		  var result As Variant = mIsChannelPlaying.Invoke(params)
+		  
+		  // Extract the output isPlaying value
+		  isPlaying = params(1)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Function IsLibraryLoaded() As Boolean
 		  Return mFMODLibrary <> Nil
 		End Function
@@ -324,13 +409,59 @@ Protected Class FMODLibraryManager
 		  // End If
 		  
 		  Return True
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function PlaySound(systemPtr As Ptr, sound As Ptr, channelGroup As Ptr, paused As Boolean, ByRef channel As Ptr) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
 		  
+		  // Lazy initialize this function if needed
+		  If mPlaySound Is Nil Then
+		    var playSoundPtr As Ptr = mFMODLibrary.Symbol("FMOD_System_PlaySound")
+		    If playSoundPtr <> Nil Then
+		      mPlaySound = New DeclareFunctionMBS("(pppb@)i", playSoundPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
 		  
+		  var params() As Variant
+		  params.Append systemPtr
+		  params.Append sound
+		  params.Append channelGroup
+		  params.Append paused
+		  params.Append channel
 		  
+		  var result As Variant = mPlaySound.Invoke(params)
 		  
+		  // Extract the output channel pointer
+		  channel = params(4)
 		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function ReleaseSound(sound as Ptr) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
 		  
+		  // Lazy initialize this function if needed
+		  If mReleaseSound Is Nil Then
+		    var releaseSoundPtr As Ptr = mFMODLibrary.Symbol("FMOD_Sound_Release")
+		    If releaseSoundPtr <> Nil Then
+		      mReleaseSound = New DeclareFunctionMBS("(p)i", releaseSoundPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
 		  
+		  var params() As Variant
+		  params.Append sound
+		  
+		  var result As Variant = mReleaseSound.Invoke(params)
+		  
+		  Return result.IntegerValue
 		End Function
 	#tag EndMethod
 
@@ -348,6 +479,102 @@ Protected Class FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function SetChannelFrequency(channel As Ptr, frequency As Double) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mSetChannelFrequency Is Nil Then
+		    var setChannelFrequencyPtr As Ptr = mFMODLibrary.Symbol("FMOD_Channel_SetFrequency")
+		    If setChannelFrequencyPtr <> Nil Then
+		      mSetChannelFrequency = New DeclareFunctionMBS("(pf)i", setChannelFrequencyPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append channel
+		  params.Append frequency
+		  
+		  var result As Variant = mSetChannelFrequency.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function SetChannelPan(channel As Ptr, pan As Double) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mSetChannelPan Is Nil Then
+		    var setChannelPanPtr As Ptr = mFMODLibrary.Symbol("FMOD_Channel_SetPan")
+		    If setChannelPanPtr <> Nil Then
+		      mSetChannelPan = New DeclareFunctionMBS("(pf)i", setChannelPanPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append channel
+		  params.Append pan
+		  
+		  var result As Variant = mSetChannelPan.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function SetChannelPaused(channel As Ptr, paused As Boolean) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mSetChannelPaused Is Nil Then
+		    var setChannelPausedPtr As Ptr = mFMODLibrary.Symbol("FMOD_Channel_SetPaused")
+		    If setChannelPausedPtr <> Nil Then
+		      mSetChannelPaused = New DeclareFunctionMBS("(pb)i", setChannelPausedPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append channel
+		  params.Append paused
+		  
+		  var result As Variant = mSetChannelPaused.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub SetChannelVolume(channel As Ptr, volume As Double)
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mSetChannelVolume Is Nil Then
+		    var setChannelVolumePtr As Ptr = mFMODLibrary.Symbol("FMOD_Channel_SetVolume")
+		    If setChannelVolumePtr <> Nil Then
+		      mSetChannelVolume = New DeclareFunctionMBS("(pf)i", setChannelVolumePtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append channel
+		  params.Append volume
+		  
+		  var result As Variant = mSetChannelVolume.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Function SetNumChannels(systemPtr As Ptr, numChannels As Integer) As Integer
 		  If Not IsLibraryLoaded() Or mSetNumChannels Is Nil Then Return -1
 		  
@@ -356,6 +583,80 @@ Protected Class FMODLibraryManager
 		  params.Append numChannels
 		  
 		  var result As Variant = mSetNumChannels.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function SetSoundLoopPoints(sound As Ptr, loopStart As Integer, loopStartType As Integer, loopEnd As Integer, loopEndType As Integer) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mSetSoundLoopPoints Is Nil Then
+		    var setSoundLoopPointsPtr As Ptr = mFMODLibrary.Symbol("FMOD_Sound_SetLoopPoints")
+		    If setSoundLoopPointsPtr <> Nil Then
+		      mSetSoundLoopPoints = New DeclareFunctionMBS("(piiii)i", setSoundLoopPointsPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append sound
+		  params.Append loopStart
+		  params.Append loopStartType
+		  params.Append loopEnd
+		  params.Append loopEndType
+		  
+		  var result As Variant = mSetSoundLoopPoints.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function SetSoundMode() As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mSetSoundMode Is Nil Then
+		    var setSoundModePtr As Ptr = mFMODLibrary.Symbol("FMOD_Sound_SetMode")
+		    If setSoundModePtr <> Nil Then
+		      mSetSoundMode = New DeclareFunctionMBS("(pi)i", setSoundModePtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append sound
+		  params.Append mode
+		  
+		  var result As Variant = mSetSoundMode.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function StopChannel(channel as Ptr) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mStopChannel Is Nil Then
+		    var stopChannelPtr As Ptr = mFMODLibrary.Symbol("FMOD_Channel_Stop")
+		    If stopChannelPtr <> Nil Then
+		      mStopChannel = New DeclareFunctionMBS("(p)i", stopChannelPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append channel
+		  
+		  var result As Variant = mStopChannel.Invoke(params)
 		  
 		  Return result.IntegerValue
 		End Function
@@ -394,6 +695,10 @@ Protected Class FMODLibraryManager
 
 	#tag Property, Flags = &h21
 		Private mCreateDSPByType As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mCreateSound As DeclareFunctionMBS
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -437,6 +742,10 @@ Protected Class FMODLibraryManager
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mGetSoundLength As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mInitSystem As DeclareFunctionMBS
 	#tag EndProperty
 
@@ -445,11 +754,51 @@ Protected Class FMODLibraryManager
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mIsChannelPlaying As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mPlaySound As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mReleaseSound As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mReleaseSystem As DeclareFunctionMBS
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mSetChannelFrequency As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mSetChannelPan As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mSetChannelPaused As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mSetChannelVolume As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mSetNumChannels As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mSetSoundLoopPoints As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mSetSoundMode As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
+		Private mStopChannel As DeclareFunctionMBS
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

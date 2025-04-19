@@ -1,5 +1,19 @@
-#tag Class
-Protected Class FMODStructures
+#tag Module
+Protected Module FMODStructures
+	#tag Method, Flags = &h0
+		Function CPUUsageToMemoryBlock(usage as FMOD_CPU_USAGE) As MemoryBlock
+		  var mb As New MemoryBlock(FMOD_CPU_USAGE.Size)
+		  
+		  mb.SingleValue(0) = usage.dsp
+		  mb.SingleValue(4) = usage.stream
+		  mb.SingleValue(8) = usage.geometry
+		  mb.SingleValue(12) = usage.update
+		  mb.SingleValue(16) = usage.total
+		  
+		  return mb
+		End Function
+	#tag EndMethod
+
 	#tag Method, Flags = &h0
 		Function ExInfoToMemoryBlock(info as FMOD_CREATESOUNDEXINFO) As MemoryBlock
 		  var mb As New MemoryBlock(FMOD_CREATESOUNDEXINFO.Size)
@@ -89,6 +103,22 @@ Protected Class FMODStructures
 		  #EndIf
 		  
 		  return mb
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function MemoryBlockToCPUUsage(mb as MemoryBlock) As FMOD_CPU_USAGE
+		  var usage As FMOD_CPU_USAGE
+		  
+		  if mb <> nil then
+		    usage.dsp = mb.SingleValue(0)
+		    usage.stream = mb.SingleValue(4)
+		    usage.geometry = mb.SingleValue(8)
+		    usage.update = mb.SingleValue(12)
+		    usage.total = mb.SingleValue(16)
+		  end if
+		  
+		  return usage
 		End Function
 	#tag EndMethod
 
@@ -189,13 +219,198 @@ Protected Class FMODStructures
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub MemoryBlockToMeteringInfo()
+		Function MemoryBlockToMemoryUsage(mb as MemoryBlock) As FMOD_MEMORY_USAGE
+		  var usage As FMOD_MEMORY_USAGE
 		  
-		End Sub
+		  if mb <> nil then
+		    usage.currentallocated = mb.UInt32Value(0)
+		    usage.maxallocated = mb.UInt32Value(4)
+		    usage.other = mb.UInt32Value(8)
+		  end if
+		  
+		  return usage
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function MemoryBlockToMeteringInfo(mb as MemoryBlock) As FMOD_DSP_METERING_INFO
+		  var info As FMOD_DSP_METERING_INFO
+		  
+		  if mb <> nil then
+		    info.numsamples = mb.Int32Value(0)
+		    
+		    // Get peak levels
+		    var peakLevelOffset As Integer = 4
+		    for i As Integer = 0 to 31
+		      info.peaklevel(i) = mb.SingleValue(peakLevelOffset + i * 4)
+		    next
+		    
+		    // Get RMS levels
+		    var rmsLevelOffset As Integer = peakLevelOffset + 32 * 4
+		    for i As Integer = 0 to 31
+		      info.rmslevel(i) = mb.SingleValue(rmsLevelOffset + i * 4)
+		    next
+		    
+		    // Get number of channels
+		    info.numchannels = mb.Int32Value(rmsLevelOffset + 32 * 4)
+		  end if
+		  
+		  return info
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function MemoryUsageToMemoryBlock(usage as FMOD_MEMORY_USAGE) As MemoryBlock
+		  var mb As New MemoryBlock(FMOD_MEMORY_USAGE.Size)
+		  
+		  mb.UInt32Value(0) = usage.currentallocated
+		  mb.UInt32Value(4) = usage.maxallocated
+		  mb.UInt32Value(8) = usage.other
+		  
+		  return mb
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function MeteringInfoToMemoryBlock(info as FMOD_DSP_METERING_INFO) As MemoryBlock
+		  // Implement this method
+		  var structSize As Integer = 4 + (32 * 4 * 2) + 4  // numsamples + peaklevel array + rmslevel array + numchannels
+		  var mb As New MemoryBlock(structSize)
+		  
+		  mb.Int32Value(0) = info.numsamples
+		  
+		  // Set peak levels
+		  var peakLevelOffset As Integer = 4
+		  for i As Integer = 0 to 31
+		    mb.SingleValue(peakLevelOffset + i * 4) = info.peaklevel(i)
+		  next
+		  
+		  // Set RMS levels
+		  var rmsLevelOffset As Integer = peakLevelOffset + 32 * 4
+		  for i As Integer = 0 to 31
+		    mb.SingleValue(rmsLevelOffset + i * 4) = info.rmslevel(i)
+		  next
+		  
+		  // Set number of channels
+		  mb.Int32Value(rmsLevelOffset + 32 * 4) = info.numchannels
+		  
+		  return mb
+		End Function
 	#tag EndMethod
 
 
 	#tag Constant, Name = ERR_DSP_TYPE, Type = Double, Dynamic = False, Default = \"12", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_CHANNELCONTROL_DSP_INDEX_FADER, Type = Double, Dynamic = False, Default = \"1", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_CHANNELCONTROL_DSP_INDEX_HEAD, Type = Double, Dynamic = False, Default = \"0", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_CHANNELCONTROL_DSP_INDEX_TAIL, Type = Double, Dynamic = False, Default = \"2", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_AUDIO_RETURN, Type = Double, Dynamic = False, Default = \"22", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_AUDIO_SEND, Type = Double, Dynamic = False, Default = \"21", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_CHANNELMIX, Type = Double, Dynamic = False, Default = \"30", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_CHORUS, Type = Double, Dynamic = False, Default = \"11", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_COMPRESSOR, Type = Double, Dynamic = False, Default = \"15", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_CONVOLUTIONREVERB, Type = Double, Dynamic = False, Default = \"29", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_DELAY, Type = Double, Dynamic = False, Default = \"18", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_DISTORTION, Type = Double, Dynamic = False, Default = \"6", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_ECHO, Type = Double, Dynamic = False, Default = \"4", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_ENVELOPEFOLLOWER, Type = Double, Dynamic = False, Default = \"28", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_FFT, Type = Double, Dynamic = False, Default = \"26", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_FLANGE, Type = Double, Dynamic = False, Default = \"5", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_HIGHPASS, Type = Double, Dynamic = False, Default = \"3", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_HIGHPASSSIMPLE, Type = Double, Dynamic = False, Default = \"23", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_ITECHO, Type = Double, Dynamic = False, Default = \"14", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_LADSPA, Type = Double, Dynamic = False, Default = \"20", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_LIMITER, Type = Double, Dynamic = False, Default = \"8", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_LOUDNESS_METER, Type = Double, Dynamic = False, Default = \"27", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_LOWPASS, Type = Double, Dynamic = False, Default = \"2", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_LOWPASSIMPLE, Type = Double, Dynamic = False, Default = \"17", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_MIXER, Type = Double, Dynamic = False, Default = \"0", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_MULTIBAND_EQ, Type = Double, Dynamic = False, Default = \"33", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_NORMALIZE, Type = Double, Dynamic = False, Default = \"7", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_OBJECTPAN, Type = Double, Dynamic = False, Default = \"32", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_OSCILLATOR, Type = Double, Dynamic = False, Default = \"1", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_PAN, Type = Double, Dynamic = False, Default = \"24", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_PARAMEQ, Type = Double, Dynamic = False, Default = \"9", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_PITCHSHIFT, Type = Double, Dynamic = False, Default = \"10", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_SFXREVERB, Type = Double, Dynamic = False, Default = \"16", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_THREE_EQ, Type = Double, Dynamic = False, Default = \"25", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_TRANSCEIVER, Type = Double, Dynamic = False, Default = \"31", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_TREMOLO, Type = Double, Dynamic = False, Default = \"19", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_VSTPLUGIN, Type = Double, Dynamic = False, Default = \"12", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_DSP_TYPE_WINAMPPLUGIN, Type = Double, Dynamic = False, Default = \"13", Scope = Public
 	#tag EndConstant
 
 	#tag Constant, Name = FMOD_ERR_BADCOMMAND, Type = Double, Dynamic = False, Default = \"1", Scope = Public
@@ -258,7 +473,106 @@ Protected Class FMODStructures
 	#tag Constant, Name = FMOD_ERR_FILE_NOTFOUND, Type = Double, Dynamic = False, Default = \"18", Scope = Public
 	#tag EndConstant
 
+	#tag Constant, Name = FMOD_INIT_CHANNEL_DISTANCEFILTER, Type = Double, Dynamic = False, Default = \"&h00000200", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_CHANNEL_LOWPASS, Type = Double, Dynamic = False, Default = \"&h00000100", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_D3D_RIGHTHANDED, Type = Double, Dynamic = False, Default = \"&h00000004", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_GEOMETRY_USECLOSEST, Type = Double, Dynamic = False, Default = \"&h00040000", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_MEMORY_TRACKING, Type = Double, Dynamic = False, Default = \"&h00400000", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_MIX_FROM_UPDATE, Type = Double, Dynamic = False, Default = \"&h00000002", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_NORMAL, Type = Double, Dynamic = False, Default = \"&h00000000", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_PREFER_DOLBY_DOWNMIX, Type = Double, Dynamic = False, Default = \"&h00080000", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_PROFILE_ENABLE, Type = Double, Dynamic = False, Default = \"&h00010000", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_PROFILE_METER_ALL, Type = Double, Dynamic = False, Default = \"&h00200000", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_STREAM_FROM_UPDATE, Type = Double, Dynamic = False, Default = \"&h00000001", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_THREAD_UNSAFE, Type = Double, Dynamic = False, Default = \"&h00100000", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_INIT_VOL0_BECOMES_VIRTUAL, Type = Double, Dynamic = False, Default = \"&h00020000", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_MODE_DEFAULT, Type = Double, Dynamic = False, Default = \"&h00000000", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_MODE_LOOP_NORMAL, Type = Double, Dynamic = False, Default = \"&h00000002", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_MODE_LOOP_OFF, Type = Double, Dynamic = False, Default = \"&h00000001", Scope = Public
+	#tag EndConstant
+
 	#tag Constant, Name = FMOD_RESULT_OK, Type = Double, Dynamic = False, Default = \"0", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_SOUND_FORMAT_BITMAP, Type = Double, Dynamic = False, Default = \"6", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_SOUND_FORMAT_FLOAT, Type = String, Dynamic = False, Default = \"PCMFLOAT", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_SOUND_FORMAT_MAX, Type = Double, Dynamic = False, Default = \"7", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_SOUND_FORMAT_NONE, Type = Double, Dynamic = False, Default = \"0", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_SOUND_FORMAT_PCM16, Type = Double, Dynamic = False, Default = \"2", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_SOUND_FORMAT_PCM24, Type = Double, Dynamic = False, Default = \"3", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_SOUND_FORMAT_PCM32, Type = Double, Dynamic = False, Default = \"4", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_SOUND_FORMAT_PCM8, Type = Double, Dynamic = False, Default = \"1", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_SOUND_FORMAT_PCMFLOAT, Type = Double, Dynamic = False, Default = \"5", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_TIMEUNIT_MODORDER, Type = Double, Dynamic = False, Default = \"&h00000100", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_TIMEUNIT_MODPATTERN, Type = Double, Dynamic = False, Default = \"&h00000400", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_TIMEUNIT_MODROW, Type = Double, Dynamic = False, Default = \"&h00000200", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_TIMEUNIT_MS, Type = Double, Dynamic = False, Default = \"&h00000001", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_TIMEUNIT_PCM, Type = Double, Dynamic = False, Default = \"&h00000002", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_TIMEUNIT_PCMBYTES, Type = Double, Dynamic = False, Default = \"&h00000004", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_TIMEUNIT_PCMFRACTION, Type = Double, Dynamic = False, Default = \"&h00000010", Scope = Public
+	#tag EndConstant
+
+	#tag Constant, Name = FMOD_TIMEUNIT_RAWBYTES, Type = Double, Dynamic = False, Default = \"&h00000008", Scope = Public
 	#tag EndConstant
 
 	#tag Constant, Name = FMOD_VERSION, Type = Double, Dynamic = False, Default = \"&h00020206", Scope = Public
@@ -368,5 +682,5 @@ Protected Class FMODStructures
 			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
-End Class
-#tag EndClass
+End Module
+#tag EndModule

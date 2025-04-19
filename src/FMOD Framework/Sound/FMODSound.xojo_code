@@ -1,23 +1,27 @@
 #tag Class
 Protected Class FMODSound
 	#tag Method, Flags = &h0
-		Sub Constructor()
+		Sub Constructor(filePath as String = "")
 		  If FMODSystem.Instance = Nil Or Not FMODSystem.Instance.IsInitialized Then
 		    Raise New FMODException("FMOD System not initialized")
 		  End If
 		  
+		  // Get the library manager instance
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		  
 		  If filePath <> "" Then
-		    // Create the sound from file
-		    Dim result As Integer
-		    result = FMOD_System_CreateSound(FMODSystem.Instance.SystemPtr, filePath, _
-		    FMOD_MODE.DEFAULT, Nil, SoundPtr)
+		    // Create a sound creation info structure (if needed)
+		    var exInfo As New FMODStructures.FMOD_CREATESOUNDEXINFO
 		    
-		    If result <> FMOD_OK Then
+		    // Create the sound from file
+		    var result As Integer = libManager.CreateSound(FMODSystem.Instance.SystemPtr, filePath, _
+		    FMODStructures.FMOD_MODE_DEFAULT, Nil, SoundPtr)
+		    
+		    If result <> FMODStructures.FMOD_RESULT_OK Then
 		      Raise New FMODException("Failed to create sound: " + _
 		      FMODSystem.ResultToString(result))
 		    End If
 		  End If
-		  
 		End Sub
 	#tag EndMethod
 
@@ -26,7 +30,7 @@ Protected Class FMODSound
 		  Try
 		    Return New FMODSound(filePath)
 		  Catch ex As RuntimeException
-		    FMODSystem.Instance.LogError("Failed to create sound from file: " + ex.Message)
+		    System.DebugLog("Failed to create sound from file: " + ex.Message)
 		    Return Nil
 		  End Try
 		End Function
@@ -35,7 +39,8 @@ Protected Class FMODSound
 	#tag Method, Flags = &h0
 		Sub Destructor()
 		  If SoundPtr <> Nil Then
-		    FMOD_Sound_Release(SoundPtr)
+		    var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		    libManager.ReleaseSound(SoundPtr)
 		    SoundPtr = Nil
 		  End If
 		End Sub
@@ -47,13 +52,13 @@ Protected Class FMODSound
 		  
 		  If SoundPtr = Nil Then Return 0
 		  
-		  Dim length As UInt32
-		  Dim result As Integer
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		  var length As UInt32 = 0
 		  
-		  result = FMOD_Sound_GetLength(SoundPtr, length, FMOD_TIMEUNIT.MS)
+		  var result As Integer = libManager.GetSoundLength(SoundPtr, length, FMODStructures.FMOD_TIMEUNIT_MS)
 		  
-		  If result <> FMOD_OK Then
-		    FMODSystem.Instance.LogError("Failed to get sound length: " + _
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to get sound length: " + _
 		    FMODSystem.ResultToString(result))
 		    Return 0
 		  End If
@@ -64,24 +69,24 @@ Protected Class FMODSound
 
 	#tag Method, Flags = &h0
 		Function GetSoundPtr() As Ptr
-		  Return SoundPtr
+		  return SoundPtr
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub Play()
+		Function Play(paused as Boolean = False) As FMODChannel
 		  If SoundPtr = Nil Then Return Nil
 		  
 		  Try
-		    Dim channelPtr As Ptr
-		    Dim result As Integer
+		    var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		    var channelPtr As Ptr
 		    
 		    // Play the sound
-		    result = FMOD_System_PlaySound(FMODSystem.Instance.SystemPtr, SoundPtr, _
+		    var result As Integer = libManager.PlaySound(FMODSystem.Instance.SystemPtr, SoundPtr, _
 		    Nil, paused, channelPtr)
 		    
-		    If result <> FMOD_OK Then
-		      FMODSystem.Instance.LogError("Failed to play sound: " + _
+		    If result <> FMODStructures.FMOD_RESULT_OK Then
+		      System.DebugLog("Failed to play sound: " + _
 		      FMODSystem.ResultToString(result))
 		      Return Nil
 		    End If
@@ -90,28 +95,29 @@ Protected Class FMODSound
 		    Return New FMODChannel(channelPtr)
 		    
 		  Catch ex As RuntimeException
-		    FMODSystem.Instance.LogError("Error playing sound: " + ex.Message)
+		    System.DebugLog("Error playing sound: " + ex.Message)
 		    Return Nil
 		  End Try
-		End Sub
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub SetLoopMode(isLoop as Boolean)
+		Sub SetLoopMode(isLooped as Boolean)
 		  If SoundPtr = Nil Then Return
 		  
-		  var  mode As Integer
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
+		  var mode As Integer
 		  
 		  If loop Then
-		    mode = FMOD_MODE.LOOP_NORMAL
+		    mode = FMODStructures.FMOD_MODE_LOOP_NORMAL
 		  Else
-		    mode = FMOD_MODE.LOOP_OFF
+		    mode = FMODStructures.FMOD_MODE_LOOP_OFF
 		  End If
 		  
-		  var result As Integer = FMOD_Sound_SetMode(SoundPtr, mode)
+		  var result As Integer = libManager.SetSoundMode(SoundPtr, mode)
 		  
-		  If result <> FMOD_OK Then
-		    FMODSystem.Instance.LogError("Failed to set loop mode: " + _
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to set loop mode: " + _
 		    FMODSystem.ResultToString(result))
 		  End If
 		End Sub
@@ -121,12 +127,13 @@ Protected Class FMODSound
 		Sub SetLoopPoints(loopStart As Integer, loopEnd As Integer)
 		  If SoundPtr = Nil Then Return
 		  
-		  Dim result As Integer
-		  result = FMOD_Sound_SetLoopPoints(SoundPtr, loopStart, FMOD_TIMEUNIT.PCM, _
-		  loopEnd, FMOD_TIMEUNIT.PCM)
+		  var libManager As FMODLibraryManager = FMODLibraryManager.Instance
 		  
-		  If result <> FMOD_OK Then
-		    FMODSystem.Instance.LogError("Failed to set loop points: " + _
+		  var result As Integer = libManager.SetSoundLoopPoints(SoundPtr, loopStart, FMODStructures.FMOD_TIMEUNIT_PCM, _
+		  loopEnd, FMODStructures.FMOD_TIMEUNIT_PCM)
+		  
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to set loop points: " + _
 		    FMODSystem.ResultToString(result))
 		  End If
 		End Sub
