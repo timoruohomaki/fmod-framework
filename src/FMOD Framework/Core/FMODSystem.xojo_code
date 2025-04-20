@@ -84,16 +84,6 @@ Protected Class FMODSystem
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function Instance() As FMODSystem
-		  If mInstance = Nil Then
-		    mInstance = New FMODSystem
-		  End If
-		  
-		  Return mInstance
-		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
 		Function IsInitialized() As Boolean
 		  Return mInitialized
 		End Function
@@ -298,21 +288,21 @@ Protected Class FMODSystem
 
 	#tag Method, Flags = &h21
 		Private Function VersionToString(version as UInt32) As String
-		  Dim major As UInt32 = (version >> 16) And &hFF
-		  Dim minor As UInt32 = (version >> 8) And &hFF
-		  Dim patch As UInt32 = version And &hFF
+		  // Extract version components using different approach
+		  var major As UInt32 = Bitwise.ShiftRight(version, 16) And &hFF
+		  var minor As UInt32 = Bitwise.ShiftRight(version, 8) And &hFF
+		  var patch As UInt32 = version And &hFF
 		  
-		  Return major.ToString + "." + minor.ToString + "." + patch.ToString
+		  // Construct version string
+		  var s As String
+		  s = major.ToString + "." + minor.ToString + "." + patch.ToString
+		  Return s
 		End Function
 	#tag EndMethod
 
 
 	#tag Property, Flags = &h21
 		Private mInitialized As Boolean
-	#tag EndProperty
-
-	#tag Property, Flags = &h21
-		Private mInstance As FMODSystem
 	#tag EndProperty
 
 	#tag Property, Flags = &h0

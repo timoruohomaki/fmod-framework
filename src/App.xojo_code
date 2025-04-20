@@ -5,6 +5,10 @@ Inherits DesktopApplication
 		Sub Opening()
 		  do
 		  loop until RegisterPlugins
+		  
+		  // Load FMOD Library
+		  
+		  
 		End Sub
 	#tag EndEvent
 

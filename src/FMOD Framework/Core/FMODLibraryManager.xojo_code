@@ -1,5 +1,5 @@
-#tag Class
-Protected Class FMODLibraryManager
+#tag Module
+Protected Module FMODLibraryManager
 	#tag Method, Flags = &h0
 		Function ChannelGroup_GetDSP(channelGroup As Ptr, index As Integer, ByRef dsp As Ptr) As Integer
 		  If Not IsLibraryLoaded() Then Return -1
@@ -16,15 +16,6 @@ Protected Class FMODLibraryManager
 		  
 		  Return result.IntegerValue
 		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Sub Constructor()
-		  do
-		  loop until LoadLibrary()
-		  
-		  InitializeFunctions()
-		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
@@ -76,8 +67,18 @@ Protected Class FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function CreateSystem(ByRef systemPtr as Ptr) As Integer
+		Function CreateSystem(ByRef systemPtr As Ptr) As Integer
 		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mCreateSystem Is Nil Then
+		    var createSystemPtr As Ptr = GetLibrary().Symbol("FMOD_System_Create")
+		    If createSystemPtr <> Nil Then
+		      mCreateSystem = New DeclareFunctionMBS("(p)i", createSystemPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
 		  
 		  var params() As Variant
 		  params.Append systemPtr
@@ -188,6 +189,33 @@ Protected Class FMODLibraryManager
 
 	#tag Method, Flags = &h0
 		Function GetLibrary() As DeclareLibraryMBS
+		  // Load the library if it hasn't been loaded yet
+		  
+		  If mFMODLibrary Is Nil Then
+		    
+		    var libraryPath As String
+		    
+		    #If TargetMacOS Then
+		      libraryPath = "libfmod.dylib"
+		      
+		    #ElseIf TargetWindows Then
+		      
+		      #If Target32Bit Then
+		        libraryPath = "fmod.dll"
+		      #Else
+		        libraryPath = "fmod64.dll"
+		      #EndIf
+		      
+		    #ElseIf TargetLinux Then
+		      
+		      libraryPath = "libfmod.so"
+		      
+		    #EndIf
+		    
+		    mFMODLibrary = New DeclareLibraryMBS(libraryPath)
+		    
+		  End If
+		  
 		  Return mFMODLibrary
 		End Function
 	#tag EndMethod
@@ -376,39 +404,6 @@ Protected Class FMODLibraryManager
 	#tag Method, Flags = &h0
 		Function IsLibraryLoaded() As Boolean
 		  Return mFMODLibrary <> Nil
-		End Function
-	#tag EndMethod
-
-	#tag Method, Flags = &h0
-		Function LoadLibrary() As Boolean
-		  var libraryPath As String
-		  
-		  #If TargetMacOS Then
-		    
-		    libraryPath = "libfmod.dylib"
-		    
-		  #ElseIf TargetWindows Then
-		    
-		    #If Target32Bit Then
-		      libraryPath = "fmod.dll"
-		    #Else
-		      libraryPath = "fmod64.dll"
-		    #EndIf
-		    
-		  #ElseIf TargetLinux Then
-		    libraryPath = "libfmod.so"
-		  #EndIf
-		  
-		  mFMODLibrary = New DeclareLibraryMBS(libraryPath)
-		  
-		  // TODO if failed
-		  
-		  // If Not mFMODLibrary.Load(libraryPath) Then
-		  // System.DebugLog("Failed to load FMOD library: " + mFMODLibrary.LastError)
-		  // Return False
-		  // End If
-		  
-		  Return True
 		End Function
 	#tag EndMethod
 
@@ -676,19 +671,6 @@ Protected Class FMODLibraryManager
 	#tag EndMethod
 
 
-	#tag ComputedProperty, Flags = &h0
-		#tag Getter
-			Get
-			  If mInstance Is Nil Then
-			    mInstance = New FMODLibraryManager
-			  End If
-			  
-			  Return mInstance
-			End Get
-		#tag EndGetter
-		Instance As FMODLibraryManager
-	#tag EndComputedProperty
-
 	#tag Property, Flags = &h21
 		Private mChannelGroup_GetDSP As DeclareFunctionMBS
 	#tag EndProperty
@@ -747,10 +729,6 @@ Protected Class FMODLibraryManager
 
 	#tag Property, Flags = &h21
 		Private mInitSystem As DeclareFunctionMBS
-	#tag EndProperty
-
-	#tag Property, Flags = &h1
-		Protected mInstance As FMODLibraryManager
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -848,5 +826,5 @@ Protected Class FMODLibraryManager
 			EditorType=""
 		#tag EndViewProperty
 	#tag EndViewBehavior
-End Class
-#tag EndClass
+End Module
+#tag EndModule
