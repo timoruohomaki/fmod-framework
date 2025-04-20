@@ -38,7 +38,7 @@ Begin DesktopWindow Window1
       Height          =   22
       Index           =   -2147483648
       Italic          =   False
-      Left            =   60
+      Left            =   20
       LockBottom      =   False
       LockedInPosition=   False
       LockLeft        =   True
@@ -69,7 +69,7 @@ Begin DesktopWindow Window1
       Height          =   22
       Index           =   -2147483648
       Italic          =   False
-      Left            =   152
+      Left            =   112
       LockBottom      =   False
       LockedInPosition=   False
       LockLeft        =   True
@@ -96,6 +96,7 @@ Begin DesktopWindow Window1
       TabPanelIndex   =   0
    End
    Begin DesktopBevelButton BevelButton1
+      Active          =   False
       AllowAutoDeactivate=   True
       AllowFocus      =   True
       AllowTabStop    =   True
@@ -127,6 +128,7 @@ Begin DesktopWindow Window1
       LockRight       =   False
       LockTop         =   True
       MenuStyle       =   0
+      PanelIndex      =   0
       Scope           =   0
       TabIndex        =   2
       TabPanelIndex   =   0
@@ -138,8 +140,13 @@ Begin DesktopWindow Window1
       Value           =   False
       Visible         =   True
       Width           =   120
+      _mIndex         =   0
+      _mInitialParent =   ""
+      _mName          =   ""
+      _mPanelIndex    =   0
    End
    Begin DesktopBevelButton BevelButton2
+      Active          =   False
       AllowAutoDeactivate=   True
       AllowFocus      =   True
       AllowTabStop    =   True
@@ -171,6 +178,7 @@ Begin DesktopWindow Window1
       LockRight       =   False
       LockTop         =   True
       MenuStyle       =   0
+      PanelIndex      =   0
       Scope           =   0
       TabIndex        =   3
       TabPanelIndex   =   0
@@ -182,6 +190,10 @@ Begin DesktopWindow Window1
       Value           =   False
       Visible         =   True
       Width           =   120
+      _mIndex         =   0
+      _mInitialParent =   ""
+      _mName          =   ""
+      _mPanelIndex    =   0
    End
    Begin DesktopGaugeControl vuLeft
       AccessibilityLabel=   ""

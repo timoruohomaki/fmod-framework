@@ -6,9 +6,12 @@ Inherits DesktopApplication
 		  do
 		  loop until RegisterPlugins
 		  
-		  // Load FMOD Library
+		  // Initialize FMOD System
 		  
-		  
+		  If Not FMODLibraryManager.InitializeFMODSystem() Then
+		    // Handle initialization failure
+		    MessageBox("Failed to initialize audio system. Some features may not work correctly.")
+		  End If
 		End Sub
 	#tag EndEvent
 

@@ -22,6 +22,7 @@ Interface=FMODAudioLevelMeterListener;FMOD Framework/Profiling/FMODAudioLevelMet
 Class=LevelMeterCanvas;FMOD Framework/Profiling/LevelMeterCanvas.xojo_code;&h00000000143F07FF;&h000000004E47AFFF;false
 Class=FMODChannel;FMOD Framework/Sound/FMODChannel.xojo_code;&h000000003E61C7FF;&h000000002060AFFF;false
 Class=FMODLogger;FMOD Framework/Core/FMODLogger.xojo_code;&h000000005927CFFF;&h000000000A7F07FF;false
+Interface=IAudioProfiler;FMOD Framework/Profiling/IAudioProfiler.xojo_code;&h000000002B3AAFFF;&h000000004E47AFFF;false
 DefaultWindow=Window1
 AppMenuBar=MainMenuBar
 MajorVersion=1

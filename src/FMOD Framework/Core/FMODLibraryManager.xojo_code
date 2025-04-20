@@ -288,6 +288,37 @@ Protected Module FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function GetSystemInstance() As FMODSystem
+		  If mSystemInstance Is Nil Then
+		    // Try to initialize if not already done
+		    If Not InitializeFMODSystem() Then
+		      Return Nil
+		    End If
+		  End If
+		  
+		  Return mSystemInstance
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function InitializeFMODSystem() As Boolean
+		  // Create and initialize the FMOD system if it hasn't been created yet
+		  If mSystemInstance Is Nil Then
+		    mSystemInstance = New FMODSystem
+		    
+		    // Call the Initialize method on the instance
+		    If Not mSystemInstance.Initialize() Then
+		      System.DebugLog("Failed to initialize FMOD System")
+		      mSystemInstance = Nil
+		      Return False
+		    End If
+		  End If
+		  
+		  Return True
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Sub InitializeFunctions()
 		  
 		  // System Creation - FMOD_System_Create
@@ -546,7 +577,7 @@ Protected Module FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Sub SetChannelVolume(channel As Ptr, volume As Double)
+		Function SetChannelVolume(channel As Ptr, volume As Double) As Integer
 		  If Not IsLibraryLoaded() Then Return -1
 		  
 		  // Lazy initialize this function if needed
@@ -566,7 +597,7 @@ Protected Module FMODLibraryManager
 		  var result As Variant = mSetChannelVolume.Invoke(params)
 		  
 		  Return result.IntegerValue
-		End Sub
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
@@ -578,6 +609,32 @@ Protected Module FMODLibraryManager
 		  params.Append numChannels
 		  
 		  var result As Variant = mSetNumChannels.Invoke(params)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Function SetSoftwareFormat(systemPtr As Ptr, sampleRate As Integer, speakerMode As Integer, numRawSpeakers As Integer = 0) As Integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mSetSoftwareFormat Is Nil Then
+		    var setSoftwareFormatPtr As Ptr = mFMODLibrary.Symbol("FMOD_System_SetSoftwareFormat")
+		    If setSoftwareFormatPtr <> Nil Then
+		      mSetSoftwareFormat = New DeclareFunctionMBS("(piii)i", setSoftwareFormatPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append systemPtr
+		  params.Append sampleRate
+		  params.Append speakerMode
+		  params.Append numRawSpeakers
+		  
+		  var result As Variant = mSetSoftwareFormat.Invoke(params)
 		  
 		  Return result.IntegerValue
 		End Function
@@ -611,7 +668,7 @@ Protected Module FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
-		Function SetSoundMode() As Integer
+		Function SetSoundMode(soundPtr As Ptr, mode As Integer) As Integer
 		  If Not IsLibraryLoaded() Then Return -1
 		  
 		  // Lazy initialize this function if needed
@@ -625,7 +682,7 @@ Protected Module FMODLibraryManager
 		  End If
 		  
 		  var params() As Variant
-		  params.Append sound
+		  params.Append soundPtr
 		  params.Append mode
 		  
 		  var result As Variant = mSetSoundMode.Invoke(params)
@@ -768,6 +825,10 @@ Protected Module FMODLibraryManager
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
+		Private mSetSoftwareFormat As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h21
 		Private mSetSoundLoopPoints As DeclareFunctionMBS
 	#tag EndProperty
 
@@ -777,6 +838,10 @@ Protected Module FMODLibraryManager
 
 	#tag Property, Flags = &h21
 		Private mStopChannel As DeclareFunctionMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		mSystemInstance As FMODSystem
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

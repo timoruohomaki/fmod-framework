@@ -1,5 +1,6 @@
 #tag Interface
 Protected Interface FMODAudioProfilerListener
+Implements IAudioProfiler
 	#tag Method, Flags = &h0
 		Sub OnProfilerUpdate(Profiler as FMODAudioProfiler)
 		  
