@@ -1,13 +1,24 @@
 #tag Class
 Protected Class LevelMeterCanvas
 Inherits DesktopCanvas
-Implements FMODAudioLevelMeterListener
+Implements FMODAudioLevelMeterListener, FMODAudioProfilerListener
 	#tag Method, Flags = &h1
 		Protected Sub Constructor()
 		  // Calling the overridden superclass constructor.
 		  Super.Constructor
 		  
-		  FMODAudioProfiler.Instance.AddListener(self)
+		  // Initialize the arrays
+		  mPeakLevels = New Single()
+		  mRMSLevels = New Single()
+		  mPeakHold = New Single()
+		  mPeakHoldTime = New Integer()
+		  
+		  // Register with the profiler
+		  If FMODAudioProfiler.Instance <> Nil Then
+		    FMODAudioProfiler.Instance.AddListener(Self)
+		  Else
+		    System.DebugLog("FMODAudioProfiler instance not available")
+		  End If
 		  
 		  
 		End Sub
@@ -16,7 +27,9 @@ Implements FMODAudioLevelMeterListener
 	#tag Method, Flags = &h1
 		Protected Sub Destructor()
 		  // Unregister from the profiler
-		  FMODAudioProfiler.Instance.RemoveListener(Self)
+		  If FMODAudioProfiler.Instance <> Nil Then
+		    FMODAudioProfiler.Instance.RemoveListener(Self)
+		  End If
 		End Sub
 	#tag EndMethod
 
@@ -32,6 +45,8 @@ Implements FMODAudioLevelMeterListener
 		Protected Function GetAverageCPUUsage() As Double
 		  // Part of the IAudioProfiler interface.
 		  
+		  Return 0
+		  
 		  
 		End Function
 	#tag EndMethod
@@ -40,7 +55,7 @@ Implements FMODAudioLevelMeterListener
 		Protected Function GetPeakMemoryUsage() As UInt64
 		  // Part of the IAudioProfiler interface.
 		  
-		  
+		  Return 0
 		End Function
 	#tag EndMethod
 
@@ -48,33 +63,33 @@ Implements FMODAudioLevelMeterListener
 		Protected Function GetProfileData() As Dictionary
 		  // Part of the IAudioProfiler interface.
 		  
-		  
+		  Return Nil
 		End Function
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Sub OnLevelUpdate(peakLevels() as Single, rmsLevels() as Single, numChannels as Integer)
+	#tag Method, Flags = &h0
+		Sub OnLevelUpdate(peakLevels() as Single, rmsLevels() as Single, numChannels as Integer)
 		  // Part of the FMODAudioLevelMeterListener interface.
 		  
 		  // Update our local copies of the levels
 		  mNumChannels = numChannels
 		  
 		  // Resize arrays if needed
-		  If mPeakLevels Is Nil Or mPeakLevels.Ubound <> peakLevels.Ubound Then
-		    mPeakLevels.ResizeTo(peakLevels.Ubound)
-		    mRMSLevels.ResizeTo(rmsLevels.Ubound)
-		    mPeakHold.ResizeTo(peakLevels.Ubound)
-		    mPeakHoldTime.ResizeTo(peakLevels.Ubound)
+		  If mPeakLevels.Count <> peakLevels.Count Then
+		    mPeakLevels.ResizeTo(peakLevels.LastIndex)
+		    mRMSLevels.ResizeTo(rmsLevels.LastIndex)
+		    mPeakHold.ResizeTo(peakLevels.LastIndex)
+		    mPeakHoldTime.ResizeTo(peakLevels.LastIndex)
 		    
 		    // Initialize peak hold values
-		    For i As Integer = 0 To mPeakHold.Ubound
+		    For i As Integer = 0 To mPeakHold.LastIndex
 		      mPeakHold(i) = 0
 		      mPeakHoldTime(i) = 0
 		    Next
 		  End If
 		  
 		  // Apply visual decay for smoother meter movement
-		  For i As Integer = 0 To Min(peakLevels.Ubound, mPeakLevels.Ubound)
+		  For i As Integer = 0 To Min(peakLevels.LastIndex, mPeakLevels.LastIndex)
 		    // If new peak is higher, take it immediately
 		    If peakLevels(i) > mPeakLevels(i) Then
 		      mPeakLevels(i) = peakLevels(i)
@@ -107,8 +122,79 @@ Implements FMODAudioLevelMeterListener
 		  
 		  // Invalidate the canvas to trigger a redraw
 		  Invalidate(False)
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub OnProfilerUpdate(Profiler as FMODAudioProfiler)
+		  // Part of the FMODAudioProfilerListener interface.
 		  
+		    // Nothing to do here - we get our updates through OnLevelUpdate
+		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h21
+		Private Sub Paint(g As Graphics, areas() As REALbasic.Rect)
+		  // Draw the level meter
+		  // This is where the visualization will be drawn
 		  
+		  // Clear the background
+		  g.DrawingColor = mBackgroundColor
+		  g.FillRectangle(0, 0, g.Width, g.Height)
+		  
+		  // Calculate dimensions
+		  var barWidth As Integer = Min(mBarWidth, (g.Width - (mNumChannels * mBarSpacing)) / Max(1, mNumChannels))
+		  var meterHeight As Integer = g.Height - 20  // Leave room for labels
+		  
+		  // Draw each channel meter
+		  For i As Integer = 0 To mNumChannels - 1
+		    If i > mPeakLevels.LastIndex Then
+		      Exit // Safety check
+		    End If
+		    
+		    // Calculate positions
+		    var x As Integer = i * (barWidth + mBarSpacing) + mBarSpacing
+		    var y As Integer = 10
+		    
+		    // Draw background meter frame
+		    g.DrawingColor = &c333333
+		    g.FillRectangle(x, y, barWidth, meterHeight)
+		    
+		    // Convert level to pixel height
+		    var peakLevelHeight As Integer = Round(mPeakLevels(i) * meterHeight)
+		    var rmsLevelHeight As Integer = Round(mRMSLevels(i) * meterHeight)
+		    
+		    // Draw RMS level (main bar)
+		    If rmsLevelHeight > 0 Then
+		      // Gradient coloring based on level
+		      var levelRatio As Double = mRMSLevels(i)
+		      var barColor As Color
+		      
+		      If levelRatio > 0.8 Then
+		        barColor = mRedColor
+		      ElseIf levelRatio > 0.6 Then
+		        barColor = mYellowColor
+		      Else
+		        barColor = mGreenColor
+		      End If
+		      
+		      g.DrawingColor = barColor
+		      g.FillRectangle(x, y + meterHeight - rmsLevelHeight, barWidth, rmsLevelHeight)
+		    End If
+		    
+		    // Draw peak hold line
+		    If mPeakHold(i) > 0 Then
+		      var peakHoldY As Integer = y + meterHeight - Round(mPeakHold(i) * meterHeight)
+		      g.DrawingColor = mPeakColor
+		      g.FillRectangle(x, peakHoldY, barWidth, 2)
+		    End If
+		    
+		    // Draw level markings
+		    g.DrawingColor = &c666666
+		    g.DrawLine(x, y + meterHeight * 0.2, x + barWidth, y + meterHeight * 0.2) // -14dB
+		    g.DrawLine(x, y + meterHeight * 0.4, x + barWidth, y + meterHeight * 0.4) // -8dB
+		    g.DrawLine(x, y + meterHeight * 0.8, x + barWidth, y + meterHeight * 0.8) // -2dB
+		  Next
 		End Sub
 	#tag EndMethod
 
