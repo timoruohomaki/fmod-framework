@@ -1,7 +1,7 @@
 #tag Class
 Protected Class LevelMeterCanvas
 Inherits DesktopCanvas
-Implements FMODAudioLevelMeterListener, FMODAudioProfilerListener
+Implements FMODAudioLevelMeterListener,FMODAudioProfilerListener
 	#tag Method, Flags = &h1
 		Protected Sub Constructor()
 		  // Calling the overridden superclass constructor.
@@ -19,8 +19,6 @@ Implements FMODAudioLevelMeterListener, FMODAudioProfilerListener
 		  Else
 		    System.DebugLog("FMODAudioProfiler instance not available")
 		  End If
-		  
-		  
 		End Sub
 	#tag EndMethod
 
@@ -86,6 +84,7 @@ Implements FMODAudioLevelMeterListener, FMODAudioProfilerListener
 		      mPeakHold(i) = 0
 		      mPeakHoldTime(i) = 0
 		    Next
+		    
 		  End If
 		  
 		  // Apply visual decay for smoother meter movement
@@ -129,7 +128,7 @@ Implements FMODAudioLevelMeterListener, FMODAudioProfilerListener
 		Sub OnProfilerUpdate(Profiler as FMODAudioProfiler)
 		  // Part of the FMODAudioProfilerListener interface.
 		  
-		    // Nothing to do here - we get our updates through OnLevelUpdate
+		  // Nothing to do here - we get our updates through OnLevelUpdate
 		End Sub
 	#tag EndMethod
 
@@ -280,7 +279,7 @@ Implements FMODAudioLevelMeterListener, FMODAudioProfilerListener
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
-		Private mPeakHold As Single
+		Private mPeakHold() As Single
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -288,7 +287,7 @@ Implements FMODAudioLevelMeterListener, FMODAudioProfilerListener
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
-		Private mPeakHoldTime As Integer
+		Private mPeakHoldTime() As Integer
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

@@ -1,5 +1,5 @@
 #tag DesktopWindow
-Begin DesktopWindow Window1
+Begin DesktopWindow winSoundPlayer
    Backdrop        =   0
    BackgroundColor =   &cFFFFFF
    Composite       =   False
@@ -11,7 +11,7 @@ Begin DesktopWindow Window1
    HasMaximizeButton=   True
    HasMinimizeButton=   True
    HasTitleBar     =   True
-   Height          =   180
+   Height          =   177
    ImplicitInstance=   True
    MacProcID       =   0
    MaximumHeight   =   32000
@@ -24,8 +24,8 @@ Begin DesktopWindow Window1
    Title           =   "FMOD Test Framework"
    Type            =   0
    Visible         =   True
-   Width           =   596
-   Begin DesktopButton Button1
+   Width           =   361
+   Begin DesktopButton buttonPlay
       AllowAutoDeactivate=   True
       Bold            =   False
       Cancel          =   False
@@ -35,7 +35,7 @@ Begin DesktopWindow Window1
       FontName        =   "System"
       FontSize        =   0.0
       FontUnit        =   0
-      Height          =   22
+      Height          =   48
       Index           =   -2147483648
       Italic          =   False
       Left            =   20
@@ -50,13 +50,13 @@ Begin DesktopWindow Window1
       TabPanelIndex   =   0
       TabStop         =   True
       Tooltip         =   ""
-      Top             =   135
+      Top             =   109
       Transparent     =   False
       Underline       =   False
       Visible         =   True
-      Width           =   80
+      Width           =   120
    End
-   Begin DesktopButton Button2
+   Begin DesktopButton buttonStop
       AllowAutoDeactivate=   True
       Bold            =   False
       Cancel          =   False
@@ -66,10 +66,10 @@ Begin DesktopWindow Window1
       FontName        =   "System"
       FontSize        =   0.0
       FontUnit        =   0
-      Height          =   22
+      Height          =   48
       Index           =   -2147483648
       Italic          =   False
-      Left            =   112
+      Left            =   152
       LockBottom      =   False
       LockedInPosition=   False
       LockLeft        =   True
@@ -81,11 +81,11 @@ Begin DesktopWindow Window1
       TabPanelIndex   =   0
       TabStop         =   True
       Tooltip         =   ""
-      Top             =   135
+      Top             =   109
       Transparent     =   False
       Underline       =   False
       Visible         =   True
-      Width           =   80
+      Width           =   120
    End
    Begin Timer fmodTimer
       Index           =   -2147483648
@@ -95,7 +95,7 @@ Begin DesktopWindow Window1
       Scope           =   0
       TabPanelIndex   =   0
    End
-   Begin DesktopBevelButton BevelButton1
+   Begin DesktopBevelButton bbPlayTone
       Active          =   False
       AllowAutoDeactivate=   True
       AllowFocus      =   True
@@ -103,7 +103,7 @@ Begin DesktopWindow Window1
       BackgroundColor =   &c00000000
       BevelStyle      =   1
       Bold            =   False
-      ButtonStyle     =   0
+      ButtonStyle     =   1
       Caption         =   "DSP Tone 1 kHz"
       CaptionAlignment=   3
       CaptionDelta    =   0
@@ -145,7 +145,7 @@ Begin DesktopWindow Window1
       _mName          =   ""
       _mPanelIndex    =   0
    End
-   Begin DesktopBevelButton BevelButton2
+   Begin DesktopBevelButton bbPlayFile
       Active          =   False
       AllowAutoDeactivate=   True
       AllowFocus      =   True
@@ -153,7 +153,7 @@ Begin DesktopWindow Window1
       BackgroundColor =   &c00000000
       BevelStyle      =   1
       Bold            =   False
-      ButtonStyle     =   0
+      ButtonStyle     =   1
       Caption         =   "Audio File"
       CaptionAlignment=   3
       CaptionDelta    =   0
@@ -195,125 +195,87 @@ Begin DesktopWindow Window1
       _mName          =   ""
       _mPanelIndex    =   0
    End
-   Begin DesktopGaugeControl vuLeft
-      AccessibilityLabel=   ""
-      AutoDeactivate  =   True
-      BorderColor     =   &c55575300
-      Clickable       =   False
-      DMBorderColor   =   &c55575300
-      DMDownColor     =   &c1F24260C
-      DMGaugeColor    =   &c2F34360C
-      DMHighLimitColor=   &cC6C6C600
-      DMLargeTickColor=   &cFFFFFF00
-      DMLowLimitColor =   &c3C3C3C0C
-      DMMediumLimitColor=   &c75757500
-      DMNeedleColor   =   &cED6F2D00
-      DMSmallTickColor=   &cF0F0F000
-      DMTextColor     =   &cFFFFFF00
-      DoubleBuffer    =   False
-      DownColor       =   &c1F24260C
+   Begin LevelMeterCanvas vuLeft
+      AllowAutoDeactivate=   True
+      AllowFocus      =   False
+      AllowFocusRing  =   True
+      AllowTabs       =   False
+      Backdrop        =   0
       Enabled         =   True
-      FormatValue     =   "{value}"
-      FormatValueMask =   "##"
-      GaugeColor      =   &c2F34360C
-      Height          =   140
-      HighLimit       =   80.0
-      HighLimitColor  =   &cC6C6C600
-      HighValueLabel  =   ""
-      Icon            =   0
+      Height          =   100
       Index           =   -2147483648
-      InitialParent   =   ""
-      Large           =   False
-      LargeTickColor  =   &cFFFFFF00
-      LargeTickCount  =   5
-      Left            =   284
+      Left            =   299
       LockBottom      =   False
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   False
       LockTop         =   True
-      LowLimit        =   30.0
-      LowLimitColor   =   &c3C3C3C0C
-      LowValueLabel   =   ""
-      MaxValue        =   100.0
-      MediumLimitColor=   &c75757500
-      MinValue        =   0.0
-      NeedleColor     =   &cED6F2D00
       Scope           =   0
-      ShowLargeTicks  =   True
-      ShowLimitBar    =   True
-      ShowSmallTicks  =   True
-      SmallTickColor  =   &cF0F0F000
-      SmallTickCount  =   3
       TabIndex        =   4
       TabPanelIndex   =   0
       TabStop         =   True
-      TextColor       =   &cFFFFFF00
       Tooltip         =   ""
       Top             =   20
-      Value           =   0.0
+      Transparent     =   False
       Visible         =   True
-      Width           =   140
+      Width           =   15
    End
-   Begin DesktopGaugeControl vuRight
-      AccessibilityLabel=   ""
-      AutoDeactivate  =   True
-      BorderColor     =   &c55575300
-      Clickable       =   False
-      DMBorderColor   =   &c55575300
-      DMDownColor     =   &c1F24260C
-      DMGaugeColor    =   &c2F34360C
-      DMHighLimitColor=   &cC6C6C600
-      DMLargeTickColor=   &cFFFFFF00
-      DMLowLimitColor =   &c3C3C3C0C
-      DMMediumLimitColor=   &c75757500
-      DMNeedleColor   =   &cED6F2D00
-      DMSmallTickColor=   &cF0F0F000
-      DMTextColor     =   &cFFFFFF00
-      DoubleBuffer    =   False
-      DownColor       =   &c1F24260C
+   Begin LevelMeterCanvas vuRight
+      AllowAutoDeactivate=   True
+      AllowFocus      =   False
+      AllowFocusRing  =   True
+      AllowTabs       =   False
+      Backdrop        =   0
       Enabled         =   True
-      FormatValue     =   "{value}"
-      FormatValueMask =   "##"
-      GaugeColor      =   &c2F34360C
-      Height          =   140
-      HighLimit       =   80.0
-      HighLimitColor  =   &cC6C6C600
-      HighValueLabel  =   ""
-      Icon            =   0
+      Height          =   100
       Index           =   -2147483648
-      InitialParent   =   ""
-      Large           =   False
-      LargeTickColor  =   &cFFFFFF00
-      LargeTickCount  =   5
-      Left            =   436
+      Left            =   326
       LockBottom      =   False
       LockedInPosition=   False
       LockLeft        =   True
       LockRight       =   False
       LockTop         =   True
-      LowLimit        =   30.0
-      LowLimitColor   =   &c3C3C3C0C
-      LowValueLabel   =   ""
-      MaxValue        =   100.0
-      MediumLimitColor=   &c75757500
-      MinValue        =   0.0
-      NeedleColor     =   &cED6F2D00
       Scope           =   0
-      ShowLargeTicks  =   True
-      ShowLimitBar    =   True
-      ShowSmallTicks  =   True
-      SmallTickColor  =   &cF0F0F000
-      SmallTickCount  =   3
       TabIndex        =   5
       TabPanelIndex   =   0
       TabStop         =   True
-      TextColor       =   &cFFFFFF00
       Tooltip         =   ""
       Top             =   20
-      Value           =   0.0
+      Transparent     =   False
       Visible         =   True
-      Width           =   140
+      Width           =   15
+   End
+   Begin DesktopLabel labelPlayPosition
+      AllowAutoDeactivate=   True
+      Bold            =   False
+      Enabled         =   True
+      FontName        =   "System"
+      FontSize        =   0.0
+      FontUnit        =   0
+      Height          =   20
+      Index           =   -2147483648
+      Italic          =   False
+      Left            =   299
+      LockBottom      =   False
+      LockedInPosition=   False
+      LockLeft        =   True
+      LockRight       =   False
+      LockTop         =   True
+      Multiline       =   False
+      Scope           =   0
+      Selectable      =   False
+      TabIndex        =   6
+      TabPanelIndex   =   0
+      TabStop         =   True
+      Text            =   "00:00:00"
+      TextAlignment   =   0
+      TextColor       =   &c000000
+      Tooltip         =   ""
+      Top             =   132
+      Transparent     =   False
+      Underline       =   False
+      Visible         =   True
+      Width           =   42
    End
 End
 #tag EndDesktopWindow
@@ -321,16 +283,100 @@ End
 #tag WindowCode
 	#tag Event
 		Sub Closing()
+		  // Clean up any audio resources
+		  If mCurrentChannel <> Nil And mCurrentChannel.IsValid Then
+		    mCurrentChannel.Stop()
+		  End If
 		  
+		  // Stop oscillator if it's playing
+		  If mOscillatorChannel <> Nil And mOscillatorChannel.IsValid Then
+		    mOscillatorChannel.Stop()
+		  End If
+		  
+		  // Shut down profiler if it's running
+		  Try
+		    FMODAudioProfiler.Instance.Shutdown()
+		  Catch ex As RuntimeException
+		    // Ignore errors during shutdown
+		  End Try
 		End Sub
 	#tag EndEvent
 
 	#tag Event
 		Sub Opening()
-		  
+		  // Initialize the audio profiler when the window opens
+		  Try
+		    var profiler As FMODAudioProfiler = FMODAudioProfiler.Instance
+		    
+		    If profiler <> Nil Then
+		      // Set a faster update interval (100ms instead of default 1000ms)
+		      profiler.SetCollectionInterval(100)
+		      
+		      // Initialize the profiler with level metering enabled
+		      If profiler.Initialize() And profiler.InitializeLevelMetering() Then
+		        System.DebugLog("Audio profiler initialized with level metering")
+		      Else
+		        System.DebugLog("Failed to initialize audio profiler with metering")
+		      End If
+		    End If
+		    
+		    // Start the timer for UI updates
+		    fmodTimer.Mode = Timer.ModeMultiple
+		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error initializing audio profiler: " + ex.Message)
+		  End Try
 		End Sub
 	#tag EndEvent
 
+
+	#tag Method, Flags = &h0
+		Function CreateOscillator(frequencyHz As Double = 1000.0) As Boolean
+		  Try
+		    // Get the FMOD system instance
+		    var systemInstance As FMODSystem = FMODLibraryManager.GetSystemInstance()
+		    If systemInstance = Nil Or Not systemInstance.IsInitialized Then
+		      System.DebugLog("FMOD system not initialized")
+		      Return False
+		    End If
+		    
+		    // Create an oscillator DSP
+		    var dspPtr As Ptr
+		    var result As Integer = FMODLibraryManager.CreateDSPByType(systemInstance.SystemPtr, _
+		    FMODStructures.FMOD_DSP_TYPE_OSCILLATOR, dspPtr)
+		    
+		    If result <> FMODStructures.FMOD_RESULT_OK Or dspPtr = Nil Then
+		      System.DebugLog("Failed to create oscillator DSP: " + FMODStructures.ResultToString(result))
+		      Return False
+		    End If
+		    
+		    // Store the DSP
+		    mOscillatorDSP = dspPtr
+		    
+		    // Set the oscillator parameters (frequency, type, etc.)
+		    
+		    // Get the master channel group
+		    var masterChannelGroupPtr As Ptr
+		    result = FMODLibraryManager.GetMasterChannelGroup(systemInstance.SystemPtr, masterChannelGroupPtr)
+		    
+		    If result <> FMODStructures.FMOD_RESULT_OK Or masterChannelGroupPtr = Nil Then
+		      System.DebugLog("Failed to get master channel group: " + FMODStructures.ResultToString(result))
+		      Return False
+		    End If
+		    
+		    // TODO: Set the oscillator frequency parameter
+		    // This would require implementing parameter setters for DSPs
+		    
+		    // TODO: Create a proper channel for the oscillator and start it
+		    
+		    Return True
+		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error creating oscillator: " + ex.Message)
+		    Return False
+		  End Try
+		End Function
+	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Sub EndTiming(operationName As String)
@@ -344,6 +390,7 @@ End
 		Function GetAverageCPUUsage() As Double
 		  // Part of the IAudioProfiler interface.
 		  
+		  Return 0.0
 		  
 		End Function
 	#tag EndMethod
@@ -352,13 +399,15 @@ End
 		Function GetPeakMemoryUsage() As UInt64
 		  // Part of the IAudioProfiler interface.
 		  
-		  
+		  Return 0
 		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
 		Function GetProfileData() As Dictionary
 		  // Part of the IAudioProfiler interface.
+		  
+		  Return Nil
 		  
 		  
 		End Function
@@ -412,32 +461,178 @@ End
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub StopOscillator()
+		  Try
+		    // TODO: Implement clean DSP disposal
+		    mOscillatorDSP = Nil
+		    
+		    // Update visualizations
+		    vuLeft.Value = 0
+		    vuRight.Value = 0
+		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error stopping oscillator: " + ex.Message)
+		  End Try
+		End Sub
+	#tag EndMethod
 
-	#tag Property, Flags = &h21
-		Private previousEx As String
+
+	#tag Property, Flags = &h0
+		mCurrentChannel As FMODChannel
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		mCurrentSound As FMODSound
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		mOscillatorDSP As Ptr
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		previousEx As String
 	#tag EndProperty
 
 
 #tag EndWindowCode
 
-#tag Events Button1
+#tag Events buttonPlay
 	#tag Event
 		Sub Pressed()
-		  
+		  // Play Button
+		  Try
+		    If bbPlayTone1.Value Then
+		      // Create and play a tone (oscillator)
+		      If mOscillatorDSP = Nil Then
+		        // Create a new oscillator at 1kHz
+		        If CreateOscillator(1000.0) Then
+		          System.DebugLog("Started oscillator at 1kHz")
+		        Else
+		          System.DebugLog("Failed to start oscillator")
+		        End If
+		      Else
+		        System.DebugLog("Oscillator is already playing")
+		      End If
+		    ElseIf bbPlayFile.Value Then
+		      // Play an audio file (using file dialog)
+		      var dlg As New OpenDialog
+		      dlg.Title = "Select Audio File"
+		      dlg.Filter = "Audio Files:*.mp3;*.wav;*.ogg"
+		      
+		      If dlg.ShowModal() Then
+		        var soundFile As FolderItem = dlg.SelectedFile
+		        If soundFile <> Nil And soundFile.Exists Then
+		          // Create and play the sound
+		          var sound As FMODSound = New FMODSound(soundFile.NativePath)
+		          If sound <> Nil Then
+		            // Store the currently playing sound so we can stop it later
+		            mCurrentSound = sound
+		            mCurrentChannel = sound.Play(False)
+		            
+		            System.DebugLog("Playing audio file: " + soundFile.Name)
+		          End If
+		        End If
+		      End If
+		    Else
+		      System.DebugLog("Please select a sound source first")
+		    End If
+		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error playing sound: " + ex.Message)
+		    
+		    // Only display message box if this is a new exception
+		    If ex.Message <> previousEx Then
+		      MessageBox("Error playing sound: " + ex.Message)
+		      previousEx = ex.Message
+		    End If
+		  End Try
 		End Sub
 	#tag EndEvent
 #tag EndEvents
-#tag Events Button2
+#tag Events buttonStop
 	#tag Event
 		Sub Pressed()
-		  
+		  // Stop Button
+		  Try
+		    // Check if we have a regular sound channel playing
+		    If mCurrentChannel <> Nil And mCurrentChannel.IsValid Then
+		      mCurrentChannel.Stop()
+		      System.DebugLog("Playback stopped")
+		    End If
+		    
+		    // Check if we have an oscillator playing
+		    If mOscillatorDSP <> Nil Then
+		      StopOscillator()
+		      System.DebugLog("Oscillator stopped")
+		    End If
+		    
+		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error stopping sound: " + ex.Message)
+		  End Try
 		End Sub
 	#tag EndEvent
 #tag EndEvents
 #tag Events fmodTimer
 	#tag Event
 		Sub Action()
-		  
+		  Try
+		    // Update FMOD
+		    var systemInstance As FMODSystem = FMODLibraryManager.GetSystemInstance()
+		    If systemInstance <> Nil And systemInstance.IsInitialized Then
+		      // Update FMOD system
+		      systemInstance.Update()
+		      
+		      // If there's a channel playing, update visualizations
+		      If mCurrentChannel <> Nil And mCurrentChannel.IsValid Then
+		        // Get the metering info from the audio profiler
+		        var profiler As FMODAudioProfiler = FMODAudioProfiler.Instance
+		        If profiler <> Nil And profiler.IsMeteringEnabled Then
+		          var peakLevels() As Single = profiler.GetPeakLevels()
+		          
+		          // Update VU meters (if we have at least stereo channels)
+		          If peakLevels.Count >= 2 Then
+		            // Convert from linear 0-1 amplitude to VU meter scale 0-100
+		            vuLeft.Value = peakLevels(0) * 100
+		            vuRight.Value = peakLevels(1) * 100
+		          ElseIf peakLevels.Count = 1 Then
+		            // Mono case
+		            vuLeft.Value = peakLevels(0) * 100
+		            vuRight.Value = peakLevels(0) * 100
+		          End If
+		        End If
+		        
+		        // Also check if the sound is still playing
+		        If Not mCurrentChannel.IsPlaying Then
+		          // Sound has ended
+		          vuLeft.Value = 0
+		          vuRight.Value = 0
+		        End If
+		      Else
+		        // No sound playing
+		        vuLeft.Value = 0
+		        vuRight.Value = 0
+		      End If
+		    End If
+		    
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error updating audio: " + ex.Message)
+		  End Try
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events bbPlayTone
+	#tag Event
+		Sub Pressed()
+		  bbPlayFile.Value = Not me.value
+		End Sub
+	#tag EndEvent
+#tag EndEvents
+#tag Events bbPlayFile
+	#tag Event
+		Sub Pressed()
+		  bbPlayTone.Value = Not me.Value
 		End Sub
 	#tag EndEvent
 #tag EndEvents
