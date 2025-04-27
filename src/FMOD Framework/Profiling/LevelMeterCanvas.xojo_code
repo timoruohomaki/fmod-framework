@@ -2,14 +2,14 @@
 Protected Class LevelMeterCanvas
 Inherits DesktopCanvas
 Implements FMODAudioLevelMeterListener,FMODAudioProfilerListener
-	#tag Method, Flags = &h1
-		Protected Sub Constructor()
+	#tag Method, Flags = &h0
+		Sub Constructor()
 		  // Calling the overridden superclass constructor.
 		  Super.Constructor
 		  
 		  // Initialize the arrays
-		  mPeakLevels = New Single()
-		  mRMSLevels = New Single()
+		  mPeakLevels() = New Single()
+		  mRMSLevels() = New Single()
 		  mPeakHold = New Single()
 		  mPeakHoldTime = New Integer()
 		  
@@ -245,6 +245,50 @@ Implements FMODAudioLevelMeterListener,FMODAudioProfilerListener
 		End Sub
 	#tag EndMethod
 
+	#tag Method, Flags = &h0
+		Sub UpdateLevel(channelIndex As Integer, levelValue As Single)
+		  // Direct method to update a specific channel level
+		  // This can be used when not getting data from the audio profiler
+		  
+		  If channelIndex >= 0 Then
+		    // Make sure arrays are sized correctly
+		    If mPeakLevels.Count <= channelIndex Then
+		      mPeakLevels.ResizeTo(channelIndex)
+		      mRMSLevels.ResizeTo(channelIndex)
+		      mPeakHold.ResizeTo(channelIndex)
+		      mPeakHoldTime.ResizeTo(channelIndex)
+		      
+		      // Initialize new elements
+		      For i As Integer = 0 To mPeakLevels.LastIndex
+		        If i >= mNumChannels Then
+		          mPeakLevels(i) = 0
+		          mRMSLevels(i) = 0
+		          mPeakHold(i) = 0
+		          mPeakHoldTime(i) = 0
+		        End If
+		      Next
+		      
+		      // Update number of channels if needed
+		      mNumChannels = Max(mNumChannels, channelIndex + 1)
+		    End If
+		    
+		    // Update the level for the specified channel
+		    // For direct updates, we set both peak and RMS to the same value
+		    mPeakLevels(channelIndex) = levelValue
+		    mRMSLevels(channelIndex) = levelValue
+		    
+		    // Update peak hold
+		    If levelValue >= mPeakHold(channelIndex) Then
+		      mPeakHold(channelIndex) = levelValue
+		      mPeakHoldTime(channelIndex) = mPeakHoldDuration
+		    End If
+		    
+		    // Trigger a redraw
+		    Invalidate(False)
+		  End If
+		End Sub
+	#tag EndMethod
+
 
 	#tag Property, Flags = &h21
 		Private mBackgroundColor As Color = &c121212
@@ -290,8 +334,8 @@ Implements FMODAudioLevelMeterListener,FMODAudioProfilerListener
 		Private mPeakHoldTime() As Integer
 	#tag EndProperty
 
-	#tag Property, Flags = &h21
-		Private mPeakLevels() As Integer
+	#tag Property, Flags = &h0
+		mPeakLevels() As Integer
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

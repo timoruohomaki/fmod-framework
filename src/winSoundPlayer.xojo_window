@@ -88,6 +88,7 @@ Begin DesktopWindow winSoundPlayer
       Width           =   120
    End
    Begin Timer fmodTimer
+      Enabled         =   True
       Index           =   -2147483648
       LockedInPosition=   False
       Period          =   100
@@ -255,7 +256,7 @@ Begin DesktopWindow winSoundPlayer
       Height          =   20
       Index           =   -2147483648
       Italic          =   False
-      Left            =   299
+      Left            =   284
       LockBottom      =   False
       LockedInPosition=   False
       LockLeft        =   True
@@ -268,14 +269,14 @@ Begin DesktopWindow winSoundPlayer
       TabPanelIndex   =   0
       TabStop         =   True
       Text            =   "00:00:00"
-      TextAlignment   =   0
+      TextAlignment   =   2
       TextColor       =   &c000000
       Tooltip         =   ""
       Top             =   132
       Transparent     =   False
       Underline       =   False
       Visible         =   True
-      Width           =   42
+      Width           =   67
    End
 End
 #tag EndDesktopWindow
@@ -354,6 +355,8 @@ End
 		    mOscillatorDSP = dspPtr
 		    
 		    // Set the oscillator parameters (frequency, type, etc.)
+		    // Note: In a complete implementation, we would add DSP parameter methods
+		    // to FMODLibraryManager and use them here
 		    
 		    // Get the master channel group
 		    var masterChannelGroupPtr As Ptr
@@ -364,12 +367,15 @@ End
 		      Return False
 		    End If
 		    
-		    // TODO: Set the oscillator frequency parameter
-		    // This would require implementing parameter setters for DSPs
+		    // For testing purposes, we can create a simple sound and play it
+		    // In a real implementation, we would properly connect the DSP to a channel
 		    
-		    // TODO: Create a proper channel for the oscillator and start it
+		    // For testing visualization only:
+		    // Simulate oscillator playing with visualization updates
+		    vuLeft.UpdateLevel(0, 0.7)  // Set to a fixed level for testing
+		    vuRight.UpdateLevel(0, 0.7)
 		    
-		    Return True
+		    return True
 		    
 		  Catch ex As RuntimeException
 		    System.DebugLog("Error creating oscillator: " + ex.Message)
@@ -384,6 +390,20 @@ End
 		  
 		  
 		End Sub
+	#tag EndMethod
+
+	#tag Method, Flags = &h1
+		Protected Function FormatTime(milliseconds as Integer) As String
+		  // Format time in milliseconds to HH:MM:SS
+		  var seconds As Integer = milliseconds \ 1000
+		  var minutes As Integer = seconds \ 60
+		  var hours As Integer = minutes \ 60
+		  
+		  seconds = seconds Mod 60
+		  minutes = minutes Mod 60
+		  
+		  Return Format(hours, "00") + ":" + Format(minutes, "00") + ":" + Format(seconds, "00")
+		End Function
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
@@ -468,8 +488,8 @@ End
 		    mOscillatorDSP = Nil
 		    
 		    // Update visualizations
-		    vuLeft.Value = 0
-		    vuRight.Value = 0
+		    vuLeft.UpdateLevel(0, 0)
+		    vuRight.UpdateLevel(0, 0)
 		    
 		  Catch ex As RuntimeException
 		    System.DebugLog("Error stopping oscillator: " + ex.Message)
@@ -484,6 +504,10 @@ End
 
 	#tag Property, Flags = &h0
 		mCurrentSound As FMODSound
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		mOscillatorChannel As FMODChannel
 	#tag EndProperty
 
 	#tag Property, Flags = &h0
@@ -502,7 +526,7 @@ End
 		Sub Pressed()
 		  // Play Button
 		  Try
-		    If bbPlayTone1.Value Then
+		    If bbPlayTone.Value Then
 		      // Create and play a tone (oscillator)
 		      If mOscillatorDSP = Nil Then
 		        // Create a new oscillator at 1kHz
@@ -567,6 +591,10 @@ End
 		      System.DebugLog("Oscillator stopped")
 		    End If
 		    
+		    // Reset VU meters
+		    vuLeft.UpdateLevel(0, 0)
+		    vuRight.UpdateLevel(0, 0)
+		    labelPlayPosition.Text = "00:00:00"
 		    
 		  Catch ex As RuntimeException
 		    System.DebugLog("Error stopping sound: " + ex.Message)
@@ -590,29 +618,43 @@ End
 		        var profiler As FMODAudioProfiler = FMODAudioProfiler.Instance
 		        If profiler <> Nil And profiler.IsMeteringEnabled Then
 		          var peakLevels() As Single = profiler.GetPeakLevels()
+		          var rmsLevels() As Single = profiler.GetRMSLevels()
+		          var numChannels As Integer = profiler.GetMeteringChannelCount()
 		          
-		          // Update VU meters (if we have at least stereo channels)
+		          // The LevelMeterCanvas will update automatically through its interface
+		          // since it's registered as a listener with the FMODAudioProfiler
+		          
+		          // The OnLevelUpdate method will be called automatically,
+		          // but for VU meters that aren't getting updates through the profiler:
 		          If peakLevels.Count >= 2 Then
-		            // Convert from linear 0-1 amplitude to VU meter scale 0-100
-		            vuLeft.Value = peakLevels(0) * 100
-		            vuRight.Value = peakLevels(1) * 100
+		            vuLeft.UpdateLevel(0, peakLevels(0))
+		            vuRight.UpdateLevel(0, peakLevels(1))
 		          ElseIf peakLevels.Count = 1 Then
 		            // Mono case
-		            vuLeft.Value = peakLevels(0) * 100
-		            vuRight.Value = peakLevels(0) * 100
+		            vuLeft.UpdateLevel(0, peakLevels(0))
+		            vuRight.UpdateLevel(0, peakLevels(0))
+		          End If
+		          
+		          // Update play position label
+		          If mCurrentSound <> Nil And mCurrentChannel <> Nil Then
+		            // Get current position from the channel
+		            var currentPosition As Integer = mCurrentChannel.GetPosition()
+		            labelPlayPosition.Text = FormatTime(currentPosition)
 		          End If
 		        End If
 		        
 		        // Also check if the sound is still playing
 		        If Not mCurrentChannel.IsPlaying Then
 		          // Sound has ended
-		          vuLeft.Value = 0
-		          vuRight.Value = 0
+		          vuLeft.UpdateLevel(0, 0)
+		          vuRight.UpdateLevel(0, 0)
+		          labelPlayPosition.Text = "00:00:00"
 		        End If
 		      Else
 		        // No sound playing
-		        vuLeft.Value = 0
-		        vuRight.Value = 0
+		        vuLeft.UpdateLevel(0, 0)
+		        vuRight.UpdateLevel(0, 0)
+		        labelPlayPosition.Text = "00:00:00"
 		      End If
 		    End If
 		    
@@ -878,6 +920,14 @@ End
 		Group="Deprecated"
 		InitialValue="False"
 		Type="Boolean"
+		EditorType=""
+	#tag EndViewProperty
+	#tag ViewProperty
+		Name="previousEx"
+		Visible=false
+		Group="Behavior"
+		InitialValue=""
+		Type="String"
 		EditorType=""
 	#tag EndViewProperty
 #tag EndViewBehavior

@@ -130,6 +130,34 @@ Protected Module FMODLibraryManager
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function GetChannelPosition(channel As Ptr, ByRef position As UInt32, postype As Integer) As integer
+		  If Not IsLibraryLoaded() Then Return -1
+		  
+		  // Lazy initialize this function if needed
+		  If mGetChannelPosition Is Nil Then
+		    var getChannelPositionPtr As Ptr = mFMODLibrary.Symbol("FMOD_Channel_GetPosition")
+		    If getChannelPositionPtr <> Nil Then
+		      mGetChannelPosition = New DeclareFunctionMBS("(p@i)i", getChannelPositionPtr)
+		    Else
+		      Return -1
+		    End If
+		  End If
+		  
+		  var params() As Variant
+		  params.Append channel
+		  params.Append position
+		  params.Append postype
+		  
+		  var result As Variant = mGetChannelPosition.Invoke(params)
+		  
+		  // Extract the output position
+		  position = params(1)
+		  
+		  Return result.IntegerValue
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Function GetChannelsPlaying(systemPtr As Ptr, ByRef channelsPlaying As Integer, ByRef realChannels As Integer) As Integer
 		  If Not IsLibraryLoaded() Then Return -1
 		  
@@ -758,6 +786,10 @@ Protected Module FMODLibraryManager
 
 	#tag Property, Flags = &h21
 		Private mFMODLibrary As DeclareLibraryMBS
+	#tag EndProperty
+
+	#tag Property, Flags = &h0
+		mGetChannelPosition As DeclareFunctionMBS
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

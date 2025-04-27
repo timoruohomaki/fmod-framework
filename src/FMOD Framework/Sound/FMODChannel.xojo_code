@@ -13,6 +13,23 @@ Protected Class FMODChannel
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
+		Function GetPosition() As Integer
+		  If Not IsValid Then Return 0
+		  
+		  var position As UInt32 = 0
+		  var result As Integer = FMODLibraryManager.GetChannelPosition(ChannelPtr, position, FMODStructures.FMOD_TIMEUNIT_MS)
+		  
+		  If result <> FMODStructures.FMOD_RESULT_OK Then
+		    System.DebugLog("Failed to get channel position: " + _
+		    FMODStructures.ResultToString(result))
+		    Return 0
+		  End If
+		  
+		  Return position
+		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
 		Function IsPlaying() As Boolean
 		  If Not IsValid Then Return False
 		  
