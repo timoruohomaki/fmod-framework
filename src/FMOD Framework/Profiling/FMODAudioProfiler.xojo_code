@@ -15,8 +15,8 @@ Implements IAudioProfiler
 		End Sub
 	#tag EndMethod
 
-	#tag Method, Flags = &h1
-		Protected Sub Constructor()
+	#tag Method, Flags = &h0
+		Sub Constructor()
 		  // Get the FMOD system instance
 		  mSystem = FMODLibraryManager.GetSystemInstance()
 		  
@@ -670,8 +670,8 @@ Implements IAudioProfiler
 		Protected mDSPBufferLength As Integer
 	#tag EndProperty
 
-	#tag Property, Flags = &h1
-		Protected Shared mInstance As FMODAudioProfiler
+	#tag Property, Flags = &h0
+		Shared mInstance As FMODAudioProfiler
 	#tag EndProperty
 
 	#tag Property, Flags = &h1

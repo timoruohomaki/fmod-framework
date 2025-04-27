@@ -11,9 +11,18 @@ Inherits DesktopApplication
 		  If Not FMODLibraryManager.InitializeFMODSystem() Then
 		    // Handle initialization failure
 		    MessageBox("Failed to initialize audio system. Some features may not work correctly.")
+		    
 		  End If
+		  
+		  // Create the profiler instance
+		  ProfilerInstance = New FMODAudioProfiler
 		End Sub
 	#tag EndEvent
+
+
+	#tag Property, Flags = &h0
+		ProfilerInstance As FMODAudioProfiler
+	#tag EndProperty
 
 
 	#tag Constant, Name = kEditClear, Type = String, Dynamic = False, Default = \"&Delete", Scope = Public

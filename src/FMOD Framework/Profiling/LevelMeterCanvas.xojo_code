@@ -8,25 +8,33 @@ Implements FMODAudioLevelMeterListener,FMODAudioProfilerListener
 		  Super.Constructor
 		  
 		  // Initialize the arrays
-		  mPeakLevels() = New Single()
-		  mRMSLevels() = New Single()
-		  mPeakHold = New Single()
-		  mPeakHoldTime = New Integer()
+		  var emptyArray(-1) As Single
+		  mPeakLevels = emptyArray
+		  mRMSLevels = emptyArray
+		  mPeakHold = emptyArray
+		  
+		  var emptyIntArray(-1) As Integer
+		  mPeakHoldTime =emptyIntArray
 		  
 		  // Register with the profiler
-		  If FMODAudioProfiler.Instance <> Nil Then
-		    FMODAudioProfiler.Instance.AddListener(Self)
-		  Else
-		    System.DebugLog("FMODAudioProfiler instance not available")
-		  End If
+		  
+		  Try
+		    If App.ProfilerInstance.Instance <> Nil Then
+		      App.ProfilerInstance.Instance.AddListener(Self)
+		    Else
+		      System.DebugLog("FMODAudioProfiler instance not available")
+		    End If
+		  Catch ex As RuntimeException
+		    System.DebugLog("Error accessing FMODAudioProfiler: " + ex.Message)
+		  End Try
 		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h1
 		Protected Sub Destructor()
 		  // Unregister from the profiler
-		  If FMODAudioProfiler.Instance <> Nil Then
-		    FMODAudioProfiler.Instance.RemoveListener(Self)
+		  If App.ProfilerInstance.Instance <> Nil Then
+		    App.ProfilerInstance.Instance.RemoveListener(Self)
 		  End If
 		End Sub
 	#tag EndMethod
@@ -120,7 +128,7 @@ Implements FMODAudioLevelMeterListener,FMODAudioProfilerListener
 		  Next
 		  
 		  // Invalidate the canvas to trigger a redraw
-		  Invalidate(False)
+		  me.refresh(True)
 		End Sub
 	#tag EndMethod
 
@@ -284,7 +292,7 @@ Implements FMODAudioLevelMeterListener,FMODAudioProfilerListener
 		    End If
 		    
 		    // Trigger a redraw
-		    Invalidate(False)
+		    Me.refresh(true)
 		  End If
 		End Sub
 	#tag EndMethod
@@ -334,8 +342,8 @@ Implements FMODAudioLevelMeterListener,FMODAudioProfilerListener
 		Private mPeakHoldTime() As Integer
 	#tag EndProperty
 
-	#tag Property, Flags = &h0
-		mPeakLevels() As Integer
+	#tag Property, Flags = &h21
+		Private mPeakLevels() As Single
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
@@ -343,7 +351,7 @@ Implements FMODAudioLevelMeterListener,FMODAudioProfilerListener
 	#tag EndProperty
 
 	#tag Property, Flags = &h21
-		Private mRMSLevels() As Integer
+		Private mRMSLevels() As Single
 	#tag EndProperty
 
 	#tag Property, Flags = &h21

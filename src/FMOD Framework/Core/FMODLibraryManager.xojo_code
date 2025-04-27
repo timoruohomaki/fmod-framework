@@ -332,14 +332,17 @@ Protected Module FMODLibraryManager
 		Function InitializeFMODSystem() As Boolean
 		  // Create and initialize the FMOD system if it hasn't been created yet
 		  If mSystemInstance Is Nil Then
+		    
 		    mSystemInstance = New FMODSystem
 		    
 		    // Call the Initialize method on the instance
+		    
 		    If Not mSystemInstance.Initialize() Then
 		      System.DebugLog("Failed to initialize FMOD System")
 		      mSystemInstance = Nil
 		      Return False
 		    End If
+		    
 		  End If
 		  
 		  Return True

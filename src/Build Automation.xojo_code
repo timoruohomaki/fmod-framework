@@ -6,6 +6,15 @@
 			Begin BuildStepList Mac OS X
 				Begin BuildProjectStep Build
 				End
+				Begin CopyFilesBuildStep CopyFiles1
+					AppliesTo = 0
+					Architecture = 0
+					Target = 0
+					Destination = 0
+					Subdirectory = 
+					FolderItem = Li4vLi4vLi4vLi4vRGV2L0ZNT0QlMjBQcm9ncmFtbWVycyUyMEFQSS9hcGkvY29yZS9saWIvbGliZm1vZC5keWxpYg==
+					FolderItem = Li4vLi4vLi4vLi4vRGV2L0ZNT0QlMjBQcm9ncmFtbWVycyUyMEFQSS9hcGkvY29yZS9saWIvbGliZm1vZEwuZHlsaWI=
+				End
 				Begin SignProjectStep Sign
 				  DeveloperID=
 				  macOSEntitlements={"App Sandbox":"False","Hardened Runtime":"False","Notarize":"False","UserEntitlements":""}

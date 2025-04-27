@@ -296,7 +296,7 @@ End
 		  
 		  // Shut down profiler if it's running
 		  Try
-		    FMODAudioProfiler.Instance.Shutdown()
+		    App.ProfilerInstance.Instance.Shutdown()
 		  Catch ex As RuntimeException
 		    // Ignore errors during shutdown
 		  End Try
@@ -307,7 +307,7 @@ End
 		Sub Opening()
 		  // Initialize the audio profiler when the window opens
 		  Try
-		    var profiler As FMODAudioProfiler = FMODAudioProfiler.Instance
+		    var profiler As FMODAudioProfiler = App.ProfilerInstance
 		    
 		    If profiler <> Nil Then
 		      // Set a faster update interval (100ms instead of default 1000ms)
@@ -320,12 +320,8 @@ End
 		        System.DebugLog("Failed to initialize audio profiler with metering")
 		      End If
 		    End If
-		    
-		    // Start the timer for UI updates
-		    fmodTimer.Mode = Timer.ModeMultiple
-		    
 		  Catch ex As RuntimeException
-		    System.DebugLog("Error initializing audio profiler: " + ex.Message)
+		    System.DebugLog("Error: " + ex.Message)
 		  End Try
 		End Sub
 	#tag EndEvent
@@ -539,23 +535,24 @@ End
 		        System.DebugLog("Oscillator is already playing")
 		      End If
 		    ElseIf bbPlayFile.Value Then
+		      
 		      // Play an audio file (using file dialog)
 		      var dlg As New OpenDialog
 		      dlg.Title = "Select Audio File"
 		      dlg.Filter = "Audio Files:*.mp3;*.wav;*.ogg"
 		      
-		      If dlg.ShowModal() Then
-		        var soundFile As FolderItem = dlg.SelectedFile
-		        If soundFile <> Nil And soundFile.Exists Then
-		          // Create and play the sound
-		          var sound As FMODSound = New FMODSound(soundFile.NativePath)
-		          If sound <> Nil Then
-		            // Store the currently playing sound so we can stop it later
-		            mCurrentSound = sound
-		            mCurrentChannel = sound.Play(False)
-		            
-		            System.DebugLog("Playing audio file: " + soundFile.Name)
-		          End If
+		      
+		      var soundFile As FolderItem = dlg.ShowModal()
+		      
+		      If soundFile <> Nil And soundFile.Exists Then
+		        // Create and play the sound
+		        var sound As FMODSound = New FMODSound(soundFile.NativePath)
+		        If sound <> Nil Then
+		          // Store the currently playing sound so we can stop it later
+		          mCurrentSound = sound
+		          mCurrentChannel = sound.Play(False)
+		          
+		          System.DebugLog("Playing audio file: " + soundFile.Name)
 		        End If
 		      End If
 		    Else
@@ -609,17 +606,20 @@ End
 		    // Update FMOD
 		    var systemInstance As FMODSystem = FMODLibraryManager.GetSystemInstance()
 		    If systemInstance <> Nil And systemInstance.IsInitialized Then
+		      
 		      // Update FMOD system
-		      systemInstance.Update()
+		      do
+		      loop until systemInstance.Update()
 		      
 		      // If there's a channel playing, update visualizations
 		      If mCurrentChannel <> Nil And mCurrentChannel.IsValid Then
+		        
 		        // Get the metering info from the audio profiler
-		        var profiler As FMODAudioProfiler = FMODAudioProfiler.Instance
-		        If profiler <> Nil And profiler.IsMeteringEnabled Then
-		          var peakLevels() As Single = profiler.GetPeakLevels()
-		          var rmsLevels() As Single = profiler.GetRMSLevels()
-		          var numChannels As Integer = profiler.GetMeteringChannelCount()
+		        
+		        If App.ProfilerInstance <> Nil And App.ProfilerInstance.IsMeteringEnabled Then
+		          var peakLevels() As Single = App.ProfilerInstance.GetPeakLevels()
+		          var rmsLevels() As Single = App.ProfilerInstance.GetRMSLevels()
+		          var numChannels As Integer = App.ProfilerInstance.GetMeteringChannelCount()
 		          
 		          // The LevelMeterCanvas will update automatically through its interface
 		          // since it's registered as a listener with the FMODAudioProfiler
